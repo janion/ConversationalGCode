@@ -1,6 +1,6 @@
-from CoversationalGcode.GcodeGenerator import GcodeGenerator
-from CoversationalGcode.Hole import Hole
-from CoversationalGcode.Options import ToolOptions, OutputOptions
+from src.GcodeGenerator import GcodeGenerator
+from src.Hole import Hole
+from src.Options import ToolOptions, OutputOptions
 
 if __name__ == '__main__':
     tool_options = ToolOptions(
@@ -18,8 +18,8 @@ if __name__ == '__main__':
     output_options = OutputOptions(precision=2)
 
     gcode_generator = GcodeGenerator(tool_options, output_options)
-    gcode_generator.add_operation(Hole(0, 0, 0, 8, 9, True))
-    # gcode_generator.add_operation(Hole(0, 0, 0, 26, 9, True))
+    # gcode_generator.add_operation(Hole(0, 0, 0, 8, 9, True))
+    gcode_generator.add_operation(Hole(0, 0, 0, 26, 9, True))
     # gcode_generator.add_operation(Hole(0, 0, 0, 8, 9, False))
     # gcode_generator.add_operation(Hole(0, 0, 0, 26, 9, False))
     # gcode_generator.add_operation(Hole(0, 0, 0, 8, 2, True))

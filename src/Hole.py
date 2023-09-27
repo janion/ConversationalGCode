@@ -1,5 +1,7 @@
-from math import pi, ceil, tan, pow, isclose
+from math import ceil, pow, isclose
 from dataclasses import dataclass
+
+from Operations import helical_plunge, spiral_out
 
 
 @dataclass
@@ -52,16 +54,16 @@ class Hole:
             # Helical interpolate to depth #
             ################################
             if final_path_radius <= tool_options.max_helix_stepover:
-                self._helical_plunge((self.centre_x, self.centre_y), path_radius, total_plunge, position,
+                helical_plunge((self.centre_x, self.centre_y), path_radius, total_plunge, position,
                                      commands, tool_options, precision)
             else:
-                self._helical_plunge((self.centre_x, self.centre_y), path_radius, step_plunge, position,
+                helical_plunge((self.centre_x, self.centre_y), path_radius, step_plunge, position,
                                      commands, tool_options, precision)
 
             deepest_cut_depth = position[2]
             if not isclose(path_radius, final_path_radius, abs_tol=pow(10, -precision)):
                 # Spiral out to final radius
-                self._spiral_out(path_radius, final_path_radius, position, commands, tool_options, precision)
+                spiral_out(path_radius, final_path_radius, position, commands, tool_options, precision)
 
                 # Return to centre
                 if not isclose(deepest_cut_depth, final_depth, abs_tol=pow(10, -precision)):
@@ -81,52 +83,6 @@ class Hole:
         commands.append(f'G0 X{position[0]:.{precision}f} Y{position[1]:.{precision}f}; Move to hole position')
         position[2] = self.start_depth + tool_options.lead_in
         commands.append(f'G0 Z{position[2]:.{precision}f}; Move to hole start depth')
-
-    def _helical_plunge(self, centre, path_radius, plunge_depth, position, commands, tool_options, precision):
-        # Position tool at 3 o'clock from hole centre
-        position[0] = centre[0] + path_radius
-        position[1] = centre[1]
-        commands.append(
-            f'G0 X{position[0]:.{precision}f} Y{position[1]:.{precision}f} Z{position[2]:.{precision}f}; Move to hole start position')
-
-        # Helically plunge to depth
-        commands.append('; Helical interpolation down to step depth')
-        path_circumference = 2 * pi * path_radius
-        plunge_per_rev_using_angle = path_circumference * tan(tool_options.max_helix_angle * pi / 180)
-        average_plunge_per_rev_using_angle = plunge_depth / ceil(plunge_depth / plunge_per_rev_using_angle)
-
-        plunge_per_rev = min(plunge_depth, average_plunge_per_rev_using_angle)
-
-        step_depth = position[2] - plunge_depth
-
-        while not isclose(position[2], step_depth, abs_tol=pow(10, -precision)) and position[2] > step_depth:
-            position[2] = position[2] - plunge_per_rev
-            commands.append(
-                f'G2 X{position[0]:.{precision}f} Y{position[1]:.{precision}f} Z{position[2]:.{precision}f} I{-path_radius:.{precision}f} J0 F{tool_options.feed_rate:.{precision}f};')
-        commands.append(
-            f'G2 X{position[0]:.{precision}f} Y{position[1]:.{precision}f} Z{position[2]:.{precision}f} I{-path_radius:.{precision}f} J0 F{tool_options.feed_rate:.{precision}f}; Final full pass at depth')
-
-    def _spiral_out(self, current_radius, final_path_radius, position, commands, tool_options, precision):
-        radial_stepover = (final_path_radius - current_radius) / max(1, ceil(
-            (final_path_radius - tool_options.max_helix_stepover) / tool_options.max_stepover))
-        path_radius = current_radius
-
-        commands.append('; Spiral out to final radius')
-        while not isclose(path_radius, final_path_radius, abs_tol=pow(10, -precision)):
-            # Semi circle out increasing radius
-            path_radius += radial_stepover / 2
-            position[0] -= path_radius * 2
-            commands.append(
-                f'G2 X{position[0]:.{precision}f} I{-path_radius:.{precision}f} J0 F{tool_options.feed_rate:.{precision}f};')
-            # Semi circle maintaining radius
-            path_radius += radial_stepover / 2
-            position[0] += path_radius * 2
-            commands.append(
-                f'G2 X{position[0]:.{precision}f} I{path_radius:.{precision}f} J0 F{tool_options.feed_rate:.{precision}f};')
-        # Complete circle at final radius
-        position[0] -= path_radius * 2
-        commands.append(
-            f'G2 X{position[0]:.{precision}f} I{-path_radius:.{precision}f} J0 F{tool_options.feed_rate:.{precision}f}; Complete circle at final radius')
 
     def _clear_wall(self, position, commands, tool_options, precision):
         if position[0] > self.centre_x:
