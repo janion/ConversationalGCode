@@ -18,7 +18,14 @@ if __name__ == '__main__':
     output_options = OutputOptions(precision=2)
 
     gcode_generator = GcodeGenerator(tool_options, output_options)
-    gcode_generator.add_operation(Hole(0, 0, 0, 28.5, 3, True))
+    gcode_generator.add_operation(Hole(0, 0, 0, 8, 9, True))
+    # gcode_generator.add_operation(Hole(0, 0, 0, 26, 9, True))
+    # gcode_generator.add_operation(Hole(0, 0, 0, 8, 9, False))
+    # gcode_generator.add_operation(Hole(0, 0, 0, 26, 9, False))
+    # gcode_generator.add_operation(Hole(0, 0, 0, 8, 2, True))
+    # gcode_generator.add_operation(Hole(0, 0, 0, 26, 2, True))
+    # gcode_generator.add_operation(Hole(0, 0, 0, 8, 2, False))
+    # gcode_generator.add_operation(Hole(0, 0, 0, 26, 2, False))
     commands = gcode_generator.generate()
 
     for command in commands:

@@ -1,5 +1,10 @@
 
 
+class _CommandPrinter:
+
+    def append(self, command):
+        print(command)
+
 class GcodeGenerator:
 
     def __init__(self, tool_options, output_options):
@@ -11,6 +16,7 @@ class GcodeGenerator:
         self._operations.append(operation)
 
     def generate(self):
+        # commands = _CommandPrinter()
         commands = []
         position = [0, 0, 0]
 
