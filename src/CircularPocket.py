@@ -5,7 +5,7 @@ from Operations import helical_plunge, spiral_out
 
 
 @dataclass
-class Hole:
+class CircularPocket:
     centre_x: float  # mm
     centre_y: float  # mm
     start_depth: float  # mm
