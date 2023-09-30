@@ -18,10 +18,24 @@ class ToolOptions:
     finishing_pass: float = 0  # mm
     finishing_feed_rate: float = 0  # mm per min
 
+
+@dataclass
+class JobOptions:
+    finishing_climb: bool = True
+
     clearance_height: float = 10  # mm
     lead_in: float = 0.25  # mm
 
 
 @dataclass
 class OutputOptions:
-    precision: int = 2  # 10^(-precision) mm
+    position_precision: int = 3  # 10^(-precision) mm
+    feed_precision: int = 2  # 10^(-precision) mm
+    speed_precision: int = 1  # 10^(-precision) mm
+
+
+@dataclass
+class Options:
+    tool: ToolOptions
+    job: JobOptions
+    output: OutputOptions

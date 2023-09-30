@@ -1,6 +1,6 @@
 from src.GcodeGenerator import GcodeGenerator
 from src.CircularPocket import CircularPocket
-from src.Options import ToolOptions, OutputOptions
+from src.Options import Options, ToolOptions, OutputOptions, JobOptions
 
 if __name__ == '__main__':
     tool_options = ToolOptions(
@@ -11,22 +11,25 @@ if __name__ == '__main__':
         max_stepover=2.5,  # mm
         max_helix_stepover=2.5,  # mm
         max_stepdown=4,  # mm
-        clearance_height=5,  # mm
         finishing_pass=0.3,  # mm
-        finishing_feed_rate = 120 # mm per min
+        finishing_feed_rate=120  # mm per min
     )
-    output_options = OutputOptions(precision=2)
+    job_options = JobOptions(
+        clearance_height=5,  # mm
+    )
+    output_options = OutputOptions()
+    options = Options(tool_options, job_options, output_options)
 
-    gcode_generator = GcodeGenerator(tool_options, output_options)
-    # gcode_generator.add_operation(CircluarPocket(0, 0, 0, 8, 9, True))
+    gcode_generator = GcodeGenerator(options)
+    # gcode_generator.add_operation(CircularPocket(0, 0, 0, 8, 9, True))
     gcode_generator.add_operation(CircularPocket(0, 0, 0, 26, 9, True))
-    # gcode_generator.add_operation(CircluarPocket(0, 0, 0, 8, 9, False))
-    # gcode_generator.add_operation(CircluarPocket(0, 0, 0, 26, 9, False))
-    # gcode_generator.add_operation(CircluarPocket(0, 0, 0, 8, 2, True))
-    # gcode_generator.add_operation(CircluarPocket(0, 0, 0, 26, 2, True))
-    # gcode_generator.add_operation(CircluarPocket(0, 0, 0, 8, 2, False))
-    # gcode_generator.add_operation(CircluarPocket(0, 0, 0, 26, 2, False))
+    # gcode_generator.add_operation(CircularPocket(0, 0, 0, 8, 9, False))
+    # gcode_generator.add_operation(CircularPocket(0, 0, 0, 26, 9, False))
+    # gcode_generator.add_operation(CircularPocket(0, 0, 0, 8, 2, True))
+    # gcode_generator.add_operation(CircularPocket(0, 0, 0, 26, 2, True))
+    # gcode_generator.add_operation(CircularPocket(0, 0, 0, 8, 2, False))
+    # gcode_generator.add_operation(CircularPocket(0, 0, 0, 26, 2, False))
     commands = gcode_generator.generate()
 
     for command in commands:
-        print(command)
+        print(command.format(output_options))

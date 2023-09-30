@@ -2,6 +2,7 @@ from math import ceil, pow, isclose
 from dataclasses import dataclass
 
 from Operations import helical_plunge, spiral_out
+from gcodes.GCodes import Comment, G0, G3
 
 
 @dataclass
@@ -13,11 +14,13 @@ class CircularPocket:
     depth: float  # mm
     finishing_pass: bool = False  # mm
 
-    def generate(self, position, commands, tool_options, output_options):
+    def generate(self, position, commands, options):
         #########
         # Setup #
         #########
-        precision = output_options.precision
+        precision = options.output.position_precision
+        tool_options = options.tool
+        job_options = options.job
 
         roughing_diameter = self.diameter
         has_finishing_pass = self.finishing_pass and tool_options.finishing_pass > 0
@@ -36,9 +39,9 @@ class CircularPocket:
         initial_path_radius = min(final_path_radius, tool_options.max_helix_stepover)
 
         # Position tool ready to begin
-        self._move_to_centre(position, commands, tool_options, precision)
+        self._move_to_centre(position, commands, job_options)
 
-        total_plunge = tool_options.lead_in + self.depth
+        total_plunge = job_options.lead_in + self.depth
         step_plunge = total_plunge / ceil(total_plunge / tool_options.max_stepdown)
 
         ####################################
@@ -67,35 +70,34 @@ class CircularPocket:
 
                 # Return to centre
                 if not isclose(deepest_cut_depth, final_depth, abs_tol=pow(10, -precision)):
-                    self._clear_wall(position, commands, tool_options, precision)
-                commands.append('')
+                    self._clear_wall(position, commands, job_options)
+                commands.append(Comment())
 
         # Finishing pass
         if has_finishing_pass:
-            self._finishing_pass(position, commands, tool_options, output_options)
+            self._finishing_pass(position, commands, tool_options)
         # Clear wall
-        self._clear_wall(position, commands, tool_options, precision)
+        self._clear_wall(position, commands, job_options)
 
-    def _move_to_centre(self, position, commands, tool_options, precision):
+    def _move_to_centre(self, position, commands, job_options):
         # Position tool at hole centre
         position[0] = self.centre_x
         position[1] = self.centre_y
-        commands.append(f'G0 X{position[0]:.{precision}f} Y{position[1]:.{precision}f}; Move to hole position')
-        position[2] = self.start_depth + tool_options.lead_in
-        commands.append(f'G0 Z{position[2]:.{precision}f}; Move to hole start depth')
+        commands.append(G0(x = position[0], y = position[1], comment = 'Move to hole position'))
+        position[2] = self.start_depth + job_options.lead_in
+        commands.append(G0(z = position[2], comment = 'Move to hole start depth'))
 
-    def _clear_wall(self, position, commands, tool_options, precision):
+    def _clear_wall(self, position, commands, job_options):
         if position[0] > self.centre_x:
             position[0] = max(position[0] - 1, self.centre_x)
         else:
             position[0] = min(position[0] + 1, self.centre_x)
 
-        position[2] += tool_options.lead_in
-        commands.append(f'G0 X{position[0]:.{precision}f} Z{position[2]:.{precision}f}; Move cutter away from wall')
+        position[2] += job_options.lead_in
+        commands.append(G0(x = position[0], z = position[2], comment = 'Move cutter away from wall'))
 
-    def _finishing_pass(self, position, commands, tool_options, output_options):
-        commands.append(f'; Finishing pass of {tool_options.finishing_pass}mm')
-        precision = output_options.precision
+    def _finishing_pass(self, position, commands, tool_options):
+        commands.append(Comment(f'Finishing pass of {tool_options.finishing_pass}mm'))
 
         is_left = self.centre_x > position[0]
 
@@ -110,9 +112,9 @@ class CircularPocket:
         position[0] += (path_radius * 2 + tool_options.finishing_pass) * relative_centre_multiplier
         relative_centre = (path_radius + tool_options.finishing_pass / 2) * relative_centre_multiplier
         commands.append(
-            f'G3 X{position[0]:.{precision}f} I{relative_centre:.{precision}f} J0 F{tool_options.finishing_feed_rate:.{precision}f}; Spiral out to finishing pass')
+            G3(x = position[0], i = relative_centre, f = tool_options.finishing_feed_rate, comment = 'Spiral out to finishing pass'))
         # Full circle at finishing depth
         relative_centre = -(path_radius + tool_options.finishing_pass) * relative_centre_multiplier
         commands.append(
-            f'G3 X{position[0]:.{precision}f} I{relative_centre:.{precision}f} J0 F{tool_options.finishing_feed_rate:.{precision}f}; Complete circle at final radius')
+            G3(x = position[0], i = relative_centre, f = tool_options.finishing_feed_rate, comment = 'Complete circle at final radius'))
 
