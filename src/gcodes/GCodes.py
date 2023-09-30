@@ -8,12 +8,14 @@ class Comment:
     def format(self, output_options):
         return ';' if self.comment == '' else f'; {self.comment}'
 
+
 @dataclass
 class M2(Comment):
 
     def format(self, output_options):
         end = ';' if self.comment == '' else f'; {self.comment}'
         return f'M2{end}'
+
 
 @dataclass
 class M3(Comment):
@@ -25,12 +27,14 @@ class M3(Comment):
         end = ';' if self.comment == '' else f'; {self.comment}'
         return f'M3{rpm}{end}'
 
+
 @dataclass
 class M5(Comment):
 
     def format(self, output_options):
         end = ';' if self.comment == '' else f'; {self.comment}'
         return f'M5{end}'
+
 
 @dataclass
 class G0(Comment):
@@ -46,6 +50,7 @@ class G0(Comment):
         end = ';' if self.comment == '' else f'; {self.comment}'
         return f'G0{x_pos}{y_pos}{z_pos}{end}'
 
+
 @dataclass
 class G1(G0):
     f: float = None  # mm per min
@@ -59,6 +64,7 @@ class G1(G0):
         feed = f' F{self.f:.{feed_precision}f}'
         end = ';' if self.comment == '' else f'; {self.comment}'
         return f'G1{x_pos}{y_pos}{z_pos}{feed}{end}'
+
 
 @dataclass
 class G2(G1):
@@ -78,6 +84,7 @@ class G2(G1):
         feed = f' F{self.f:.{feed_precision}f}'
         end = ';' if self.comment == '' else f'; {self.comment}'
         return f'G2{x_pos}{y_pos}{z_pos}{i_pos}{j_pos}{k_pos}{feed}{end}'
+
 
 @dataclass
 class G3(G2):

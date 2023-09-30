@@ -2,7 +2,7 @@ from math import ceil, pow, isclose
 from dataclasses import dataclass
 
 from Operations import helical_plunge, spiral_out
-from gcodes.GCodes import Comment, G0, G3
+from gcodes.GCodes import Comment, G0, G2, G3
 
 
 @dataclass
@@ -58,10 +58,10 @@ class CircularPocket:
             ################################
             if final_path_radius <= tool_options.max_helix_stepover:
                 helical_plunge((self.centre_x, self.centre_y), path_radius, total_plunge, position,
-                                     commands, tool_options, precision)
+                               commands, tool_options, precision)
             else:
                 helical_plunge((self.centre_x, self.centre_y), path_radius, step_plunge, position,
-                                     commands, tool_options, precision)
+                               commands, tool_options, precision)
 
             deepest_cut_depth = position[2]
             if not isclose(path_radius, final_path_radius, abs_tol=pow(10, -precision)):
@@ -75,7 +75,7 @@ class CircularPocket:
 
         # Finishing pass
         if has_finishing_pass:
-            self._finishing_pass(position, commands, tool_options)
+            self._finishing_pass(position, commands, tool_options, job_options)
         # Clear wall
         self._clear_wall(position, commands, job_options)
 
@@ -83,9 +83,9 @@ class CircularPocket:
         # Position tool at hole centre
         position[0] = self.centre_x
         position[1] = self.centre_y
-        commands.append(G0(x = position[0], y = position[1], comment = 'Move to hole position'))
+        commands.append(G0(x=position[0], y=position[1], comment='Move to hole position'))
         position[2] = self.start_depth + job_options.lead_in
-        commands.append(G0(z = position[2], comment = 'Move to hole start depth'))
+        commands.append(G0(z=position[2], comment='Move to hole start depth'))
 
     def _clear_wall(self, position, commands, job_options):
         if position[0] > self.centre_x:
@@ -94,9 +94,9 @@ class CircularPocket:
             position[0] = min(position[0] + 1, self.centre_x)
 
         position[2] += job_options.lead_in
-        commands.append(G0(x = position[0], z = position[2], comment = 'Move cutter away from wall'))
+        commands.append(G0(x=position[0], z=position[2], comment='Move cutter away from wall'))
 
-    def _finishing_pass(self, position, commands, tool_options):
+    def _finishing_pass(self, position, commands, tool_options, job_options):
         commands.append(Comment(f'Finishing pass of {tool_options.finishing_pass}mm'))
 
         is_left = self.centre_x > position[0]
@@ -111,10 +111,14 @@ class CircularPocket:
         # Spiral out to finishing depth over half turn
         position[0] += (path_radius * 2 + tool_options.finishing_pass) * relative_centre_multiplier
         relative_centre = (path_radius + tool_options.finishing_pass / 2) * relative_centre_multiplier
+
+        finishing_command = G3 if job_options.finishing_climb else G2
+
         commands.append(
-            G3(x = position[0], i = relative_centre, f = tool_options.finishing_feed_rate, comment = 'Spiral out to finishing pass'))
+            finishing_command(x=position[0], i=relative_centre, f=tool_options.finishing_feed_rate,
+                              comment='Spiral out to finishing pass'))
         # Full circle at finishing depth
         relative_centre = -(path_radius + tool_options.finishing_pass) * relative_centre_multiplier
         commands.append(
-            G3(x = position[0], i = relative_centre, f = tool_options.finishing_feed_rate, comment = 'Complete circle at final radius'))
-
+            finishing_command(x=position[0], i=relative_centre, f=tool_options.finishing_feed_rate,
+                              comment='Complete circle at final radius'))

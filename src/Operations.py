@@ -7,7 +7,7 @@ def helical_plunge(centre, path_radius, plunge_depth, position, commands, tool_o
     position[0] = centre[0] + path_radius
     position[1] = centre[1]
     commands.append(
-        G0(x = position[0], y = position[1], z = position[2], comment = 'Move to hole start position'))
+        G0(x=position[0], y=position[1], z=position[2], comment='Move to hole start position'))
 
     # Helically plunge to depth
     commands.append(Comment('Helical interpolation down to step depth'))
@@ -22,9 +22,11 @@ def helical_plunge(centre, path_radius, plunge_depth, position, commands, tool_o
     while not isclose(position[2], step_depth, abs_tol=pow(10, -precision)) and position[2] > step_depth:
         position[2] = position[2] - plunge_per_rev
         commands.append(
-            G2(x = position[0], y = position[1], z = position[2], i = -path_radius, f = tool_options.feed_rate))
+            G2(x=position[0], y=position[1], z=position[2], i=-path_radius, f=tool_options.feed_rate))
     commands.append(
-        G2(x = position[0], y = position[1], z = position[2], i = -path_radius, f = tool_options.feed_rate, comment = 'Final full pass at depth'))
+        G2(x=position[0], y=position[1], z=position[2], i=-path_radius, f=tool_options.feed_rate,
+           comment='Final full pass at depth'))
+
 
 def spiral_out(current_radius, final_path_radius, position, commands, tool_options, precision):
     radial_stepover = (final_path_radius - current_radius) / max(1, ceil(
@@ -36,11 +38,12 @@ def spiral_out(current_radius, final_path_radius, position, commands, tool_optio
         # Semi circle out increasing radius
         path_radius += radial_stepover / 2
         position[0] -= path_radius * 2
-        commands.append(G2(x = position[0], i = -path_radius, f = tool_options.feed_rate))
+        commands.append(G2(x=position[0], i=-path_radius, f=tool_options.feed_rate))
         # Semi circle maintaining radius
         path_radius += radial_stepover / 2
         position[0] += path_radius * 2
-        commands.append(G2(x = position[0], i = path_radius, f = tool_options.feed_rate))
+        commands.append(G2(x=position[0], i=path_radius, f=tool_options.feed_rate))
     # Complete circle at final radius
     position[0] -= path_radius * 2
-    commands.append(G2(x = position[0], i = -path_radius, f = tool_options.feed_rate, comment = 'Complete circle at final radius'))
+    commands.append(
+        G2(x=position[0], i=-path_radius, f=tool_options.feed_rate, comment='Complete circle at final radius'))
