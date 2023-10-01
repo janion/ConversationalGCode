@@ -54,15 +54,8 @@ class G0(Comment):
         return f'G0{x_pos}{y_pos}{z_pos}{end}'
 
     def transform(self, transformation):
-        new_x = None
-        new_y = None
-        if self.x is not None:
-            new_x = self.x * transformation[0][0] + ((self.y * transformation[0][1]) if self.y is not None else 0)
-            new_y = self.x * transformation[1][0] + ((self.y * transformation[1][1]) if self.y is not None else 0)
-        elif self.y is not None:
-            new_x = self.y * transformation[0][1]
-            new_y = self.y * transformation[1][1]
-
+        new_x = transformation.absolute[0](self.x, self.y)
+        new_y = transformation.absolute[1](self.x, self.y)
         self.x = new_x
         self.y = new_y
 
@@ -109,14 +102,8 @@ class G2(G1):
     def transform(self, transformation):
         super().transform(transformation)
 
-        new_i = None
-        new_j = None
-        if self.i is not None:
-            new_i = self.i * transformation[0][0] + ((self.j * transformation[0][1]) if self.j is not None else 0)
-            new_j = self.i * transformation[1][0] + ((self.j * transformation[1][1]) if self.j is not None else 0)
-        elif self.j is not None:
-            new_i = self.j * transformation[0][1]
-            new_j = self.j * transformation[1][1]
+        new_i = transformation.relative[0](self.i, self.j)
+        new_j = transformation.relative[1](self.i, self.j)
 
         self.i = new_i
         self.j = new_j

@@ -1,8 +1,10 @@
 from math import ceil, pow, isclose, sqrt
+from copy import deepcopy
 from dataclasses import dataclass
 
 from operations.Operations import helical_plunge, spiral_out
 from gcodes.GCodes import Comment, G0, G1, G2, G3
+from transform.Rotation import Rotation
 
 from GcodeGenerator import CommandPrinter
 
@@ -50,7 +52,7 @@ class RectangularPocket:
 
         rotated = False
         if self.width > self.length:
-            pocket_centre.reverse()
+            # pocket_centre.reverse()
             pocket_path_size.reverse()
             position[0] = -position[1]
             position[1] = position[0]
@@ -129,8 +131,22 @@ class RectangularPocket:
                 last_cartesian_cut_engagement = total_cartesian_cut_engagement
 
             operation_commands.extend(br_corner_commands)
-            # for br_corner_command in br_corner_commands:
-            #     operation_commands.append(br_corner_command.transform([[-, ], [, 0]]))
+            for br_corner_command in br_corner_commands:
+                bl_corner_command = deepcopy(br_corner_command)
+                operation_commands.append(
+                    bl_corner_command.transform(
+                        Rotation(
+                            [
+                                lambda x, y: (y + pocket_clearing_centre[0] - pocket_clearing_centre[1]) if y is not None else None,
+                                lambda x, y: (pocket_clearing_centre[0] + pocket_clearing_centre[1] - x) if x is not None else None
+                            ],
+                            [
+                                lambda x, y: y if y is not None else None,
+                                lambda x, y: -x if x is not None else None
+                            ]
+                        )
+                    )
+                )
 
 
     #     # Finishing pass
@@ -143,7 +159,18 @@ class RectangularPocket:
             position[0] = position[1]
             position[1] = -position[0]
             for command in operation_commands:
-                command.transform([[0, 1], [-1, 0]])
+                command.transform(
+                    Rotation(
+                        [
+                            lambda x, y: (y + pocket_centre[0] - pocket_centre[1]) if y is not None else None,
+                            lambda x, y: (pocket_centre[0] + pocket_centre[1] - x) if x is not None else None
+                        ],
+                        [
+                            lambda x, y: y if y is not None else None,
+                            lambda x, y: -x if x is not None else None
+                        ]
+                    )
+                )
 
         for operation_command in operation_commands:
             commands.append(operation_command)
