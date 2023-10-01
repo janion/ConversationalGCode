@@ -38,12 +38,12 @@ def spiral_out(current_radius, final_path_radius, position, commands, tool_optio
         # Semi circle out increasing radius
         path_radius += radial_stepover / 2
         position[0] -= path_radius * 2
-        commands.append(G2(x=position[0], i=-path_radius, f=tool_options.feed_rate))
+        commands.append(G2(x=position[0], y=position[1], i=-path_radius, f=tool_options.feed_rate))
         # Semi circle maintaining radius
         path_radius += radial_stepover / 2
         position[0] += path_radius * 2
-        commands.append(G2(x=position[0], i=path_radius, f=tool_options.feed_rate))
+        commands.append(G2(x=position[0], y=position[1], i=path_radius, f=tool_options.feed_rate))
     # Complete circle at final radius
     position[0] -= path_radius * 2
     commands.append(
-        G2(x=position[0], i=-path_radius, f=tool_options.feed_rate, comment='Complete circle at final radius'))
+        G2(x=position[0], y=position[1], i=-path_radius, f=tool_options.feed_rate, comment='Complete circle at final radius'))

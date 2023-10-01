@@ -1,10 +1,18 @@
 from gcodes.GCodes import Comment, M2, M3, M5, G0
 
 
-class _CommandPrinter:
+class CommandPrinter:
+
+    def __init__(self, output_options):
+        self.output_options = output_options
+        self.commands = []
 
     def append(self, command):
-        print(command)
+        print(command.format(self.output_options))
+        self.commands.append(command)
+
+    def __iter__(self):
+        return self.commands.__iter__()
 
 
 class GcodeGenerator:
@@ -17,7 +25,7 @@ class GcodeGenerator:
         self._operations.append(operation)
 
     def generate(self):
-        # commands = _CommandPrinter()
+        # commands = CommandPrinter()
         commands = []
         position = [0, 0, 0]
 

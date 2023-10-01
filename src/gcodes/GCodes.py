@@ -8,7 +8,7 @@ class Comment:
     def format(self, output_options):
         return ';' if self.comment == '' else f'; {self.comment}'
 
-    def transpose(self):
+    def transform(self, transformation):
         return self
 
 
@@ -53,8 +53,19 @@ class G0(Comment):
         end = ';' if self.comment == '' else f'; {self.comment}'
         return f'G0{x_pos}{y_pos}{z_pos}{end}'
 
-    def transpose(self):
-        self.x, self.y = self.y, self.x
+    def transform(self, transformation):
+        new_x = None
+        new_y = None
+        if self.x is not None:
+            new_x = self.x * transformation[0][0] + ((self.y * transformation[0][1]) if self.y is not None else 0)
+            new_y = self.x * transformation[1][0] + ((self.y * transformation[1][1]) if self.y is not None else 0)
+        elif self.y is not None:
+            new_x = self.y * transformation[0][1]
+            new_y = self.y * transformation[1][1]
+
+        self.x = new_x
+        self.y = new_y
+
         return self
 
 
@@ -95,9 +106,21 @@ class G2(G1):
     def format(self, output_options):
         return self._format_arc('G2', output_options)
 
-    def transpose(self):
-        super().transpose()
-        self.i, self.j = self.j, self.i
+    def transform(self, transformation):
+        super().transform(transformation)
+
+        new_i = None
+        new_j = None
+        if self.i is not None:
+            new_i = self.i * transformation[0][0] + ((self.j * transformation[0][1]) if self.j is not None else 0)
+            new_j = self.i * transformation[1][0] + ((self.j * transformation[1][1]) if self.j is not None else 0)
+        elif self.j is not None:
+            new_i = self.j * transformation[0][1]
+            new_j = self.j * transformation[1][1]
+
+        self.i = new_i
+        self.j = new_j
+
         return self
 
 

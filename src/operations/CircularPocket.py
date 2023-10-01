@@ -1,7 +1,7 @@
 from math import ceil, pow, isclose
 from dataclasses import dataclass
 
-from Operations import helical_plunge, spiral_out
+from operations.Operations import helical_plunge, spiral_out
 from gcodes.GCodes import Comment, G0, G2, G3
 
 
@@ -115,10 +115,10 @@ class CircularPocket:
         finishing_command = G3 if job_options.finishing_climb else G2
 
         commands.append(
-            finishing_command(x=position[0], i=relative_centre, f=tool_options.finishing_feed_rate,
+            finishing_command(x=position[0], y=position[1], i=relative_centre, f=tool_options.finishing_feed_rate,
                               comment='Spiral out to finishing pass'))
         # Full circle at finishing depth
         relative_centre = -(path_radius + tool_options.finishing_pass) * relative_centre_multiplier
         commands.append(
-            finishing_command(x=position[0], i=relative_centre, f=tool_options.finishing_feed_rate,
+            finishing_command(x=position[0], y=position[1], i=relative_centre, f=tool_options.finishing_feed_rate,
                               comment='Complete circle at final radius'))
