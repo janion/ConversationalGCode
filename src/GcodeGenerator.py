@@ -24,10 +24,11 @@ class GcodeGenerator:
     def add_operation(self, operation):
         self._operations.append(operation)
 
-    def generate(self):
+    def generate(self, position=None):
         # commands = CommandPrinter()
+        if position is None:
+            position = [0, 0, 0]
         commands = []
-        position = [0, 0, 0]
 
         position[2] = self._options.job.clearance_height
         commands.append(G0(z=position[2], comment='Clear tool'))
