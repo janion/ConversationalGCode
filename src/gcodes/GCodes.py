@@ -8,6 +8,9 @@ class Comment:
     def format(self, output_options):
         return ';' if self.comment == '' else f'; {self.comment}'
 
+    def transpose(self):
+        pass
+
 
 @dataclass
 class M2(Comment):
@@ -50,6 +53,9 @@ class G0(Comment):
         end = ';' if self.comment == '' else f'; {self.comment}'
         return f'G0{x_pos}{y_pos}{z_pos}{end}'
 
+    def transpose(self):
+        self.x, self.y = self.y, self.x
+
 
 @dataclass
 class G1(G0):
@@ -72,7 +78,7 @@ class G2(G1):
     j: float = None  # mm
     k: float = None  # mm
 
-    def format(self, output_options):
+    def _format_arc(self, command, output_options):
         position_precision = output_options.position_precision
         feed_precision = output_options.feed_precision
         x_pos = f' X{self.x:.{position_precision}f}' if self.x is not None else ''
@@ -83,21 +89,18 @@ class G2(G1):
         k_pos = f' K{self.k:.{position_precision}f}' if self.k is not None else ''
         feed = f' F{self.f:.{feed_precision}f}'
         end = ';' if self.comment == '' else f'; {self.comment}'
-        return f'G2{x_pos}{y_pos}{z_pos}{i_pos}{j_pos}{k_pos}{feed}{end}'
+        return f'{command}{x_pos}{y_pos}{z_pos}{i_pos}{j_pos}{k_pos}{feed}{end}'
+
+    def format(self, output_options):
+        return self._format_arc('G2', output_options)
+
+    def transpose(self):
+        super().transpose()
+        self.i, self.j = self.j, self.i
 
 
 @dataclass
 class G3(G2):
 
     def format(self, output_options):
-        position_precision = output_options.position_precision
-        feed_precision = output_options.feed_precision
-        x_pos = f' X{self.x:.{position_precision}f}' if self.x is not None else ''
-        y_pos = f' Y{self.y:.{position_precision}f}' if self.y is not None else ''
-        z_pos = f' Z{self.z:.{position_precision}f}' if self.z is not None else ''
-        i_pos = f' I{self.i:.{position_precision}f}' if self.i is not None else ''
-        j_pos = f' J{self.j:.{position_precision}f}' if self.j is not None else ''
-        k_pos = f' K{self.k:.{position_precision}f}' if self.k is not None else ''
-        feed = f' F{self.f:.{feed_precision}f}'
-        end = ';' if self.comment == '' else f'; {self.comment}'
-        return f'G3{x_pos}{y_pos}{z_pos}{i_pos}{j_pos}{k_pos}{feed}{end}'
+        return self._format_arc('G3', output_options)

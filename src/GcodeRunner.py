@@ -15,7 +15,7 @@ if __name__ == '__main__':
         finishing_feed_rate=120  # mm per min
     )
     job_options = JobOptions(
-        clearance_height=5,  # mm
+        clearance_height=5  # mm
     )
     output_options = OutputOptions()
     options = Options(tool_options, job_options, output_options)
