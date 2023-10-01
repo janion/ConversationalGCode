@@ -45,28 +45,27 @@ class RectangularPocket:
         else:
             raise ValueError('Rectangular pocket must have either corner x & y, or centre x & y defined.')
 
-        pocket_path_size = [self.width - tool_options.tool_diameter, self.length - tool_options.tool_diameter]
+        pocket_clearing_size = [self.width - tool_options.tool_diameter, self.length - tool_options.tool_diameter]
         if has_finishing_pass:
-            pocket_path_size[0] -= tool_options.finishing_pass
-            pocket_path_size[1] -= tool_options.finishing_pass
+            pocket_clearing_size[0] -= tool_options.finishing_pass
+            pocket_clearing_size[1] -= tool_options.finishing_pass
 
         rotated = False
         if self.width > self.length:
-            # pocket_centre.reverse()
-            pocket_path_size.reverse()
+            pocket_clearing_size.reverse()
             position[0] = -position[1]
             position[1] = position[0]
             rotated = True
-        pocket_clearing_centre = [pocket_centre[0], pocket_centre[1] + (pocket_path_size[0] - pocket_path_size[1]) / 2]
+        pocket_clearing_centre = [pocket_centre[0], pocket_centre[1] + (pocket_clearing_size[0] - pocket_clearing_size[1]) / 2]
 
         if self.width <= tool_options.tool_diameter or self.length <= tool_options.tool_diameter:
             raise ValueError(
                 f'Pocket size [{self.width}, {self.length}]mm must be greater than tool diameter {tool_options.tool_diameter}mm')
-        elif has_finishing_pass and pocket_path_size[0] <= 0:
+        elif has_finishing_pass and pocket_clearing_size[0] <= 0:
             raise ValueError(
                 f'Pocket size [{self.width}, {self.length}]mm must be greater than tool diameter {tool_options.tool_diameter}mm and give room for a finishing pass of {tool_options.finishing_pass}mm')
 
-        final_clearing_radius = pocket_path_size[0] / 2
+        final_clearing_radius = pocket_clearing_size[0] / 2
         initial_clearing_radius = min(final_clearing_radius, tool_options.max_helix_stepover)
 
         # Position tool ready to begin
@@ -95,59 +94,10 @@ class RectangularPocket:
                 spiral_out(clearing_radius, final_clearing_radius, position, operation_commands, tool_options, precision)
 
             # Clear bottom corners
-            br_corner_commands = []
-            br_corner_commands.append(Comment('Clear nearest corners'))
-            radial_distance_to_corner = final_clearing_radius * (sqrt(2) - 1)
-            bottom_corner_stepover = radial_distance_to_corner / ceil(radial_distance_to_corner / tool_options.max_stepover)
+            corner_commands = self._clear_near_corners(pocket_clearing_centre, final_clearing_radius, position, operation_commands, options)
 
-            # Clear bottom-right corner
-            position[0] = pocket_clearing_centre[0] + final_clearing_radius
-            br_corner_commands.append(G0(x=position[0], y=position[1], comment='Move to bottom-right corner'))
-
-            total_radial_cut_engagement = 0
-            last_cartesian_cut_engagement = 0
-            while not isclose(last_cartesian_cut_engagement, final_clearing_radius, abs_tol=pow(10, -precision)):
-                total_radial_cut_engagement += bottom_corner_stepover
-                total_cartesian_cut_engagement = min(
-                    sqrt((final_clearing_radius + total_radial_cut_engagement) * (final_clearing_radius + total_radial_cut_engagement) - final_clearing_radius * final_clearing_radius),
-                    final_clearing_radius)
-                # Engage cut
-                position[1] = pocket_clearing_centre[1] - total_cartesian_cut_engagement
-                br_corner_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
-
-                if not isclose(total_cartesian_cut_engagement, final_clearing_radius, abs_tol=pow(10, -precision)):
-                    # Arc around original clearing centre
-                    position[0] = pocket_clearing_centre[0] + total_cartesian_cut_engagement
-                    position[1] = pocket_clearing_centre[1] - final_clearing_radius
-                    br_corner_commands.append(G2(x=position[0], y=position[1], i=-pocket_path_size[0] / 2, j=total_cartesian_cut_engagement, f=tool_options.feed_rate))
-                # Disengage cut
-                position[0] = pocket_clearing_centre[0] + last_cartesian_cut_engagement
-                br_corner_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
-                # Move to original cut start
-                position[0] = pocket_clearing_centre[0] + final_clearing_radius
-                position[1] = pocket_clearing_centre[1] - total_cartesian_cut_engagement
-                br_corner_commands.append(G0(x=position[0], y=position[1]))
-
-                last_cartesian_cut_engagement = total_cartesian_cut_engagement
-
-            operation_commands.extend(br_corner_commands)
-            for br_corner_command in br_corner_commands:
-                bl_corner_command = deepcopy(br_corner_command)
-                operation_commands.append(
-                    bl_corner_command.transform(
-                        Rotation(
-                            [
-                                lambda x, y: (y + pocket_clearing_centre[0] - pocket_clearing_centre[1]) if y is not None else None,
-                                lambda x, y: (pocket_clearing_centre[0] + pocket_clearing_centre[1] - x) if x is not None else None
-                            ],
-                            [
-                                lambda x, y: y if y is not None else None,
-                                lambda x, y: -x if x is not None else None
-                            ]
-                        )
-                    )
-                )
-
+            # Clear arcs up to edge
+            self._clear_far_corners(pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options)
 
     #     # Finishing pass
     #     if has_finishing_pass:
@@ -162,12 +112,14 @@ class RectangularPocket:
                 command.transform(
                     Rotation(
                         [
-                            lambda x, y: (y + pocket_centre[0] - pocket_centre[1]) if y is not None else None,
-                            lambda x, y: (pocket_centre[0] + pocket_centre[1] - x) if x is not None else None
+                            lambda x, y, z: (y + pocket_centre[0] - pocket_centre[1]) if y is not None else None,
+                            lambda x, y, z: (pocket_centre[0] + pocket_centre[1] - x) if x is not None else None,
+                            lambda x, y, z: z if z is not None else None
                         ],
                         [
-                            lambda x, y: y if y is not None else None,
-                            lambda x, y: -x if x is not None else None
+                            lambda x, y, z: y if y is not None else None,
+                            lambda x, y, z: -x if x is not None else None,
+                            lambda x, y, z: z if z is not None else None
                         ]
                     )
                 )
@@ -183,33 +135,107 @@ class RectangularPocket:
         position[2] = start_position[2] + job_options.lead_in
         commands.append(G0(z=position[2], comment='Move to hole start depth'))
 
-    # def _clear_corner(self, position, commands, options):
-    #     if position[0] != pocket_clearing_centre[0] + final_clearing_radius:
-    #         position[0] = pocket_clearing_centre[0] + final_clearing_radius
-    #         operation_commands.append(G0(x=position[0], comment='Move to bottom-right corner'))
-    #
-    #     total_radial_cut_engagement = 0
-    #     last_cartesian_cut_engagement = 0
-    #     while not isclose(last_cartesian_cut_engagement, final_clearing_radius, abs_tol=pow(10, -precision)):
-    #         total_radial_cut_engagement += bottom_corner_stepover
-    #         total_cartesian_cut_engagement = min(
-    #             sqrt((final_clearing_radius + total_radial_cut_engagement) * (final_clearing_radius + total_radial_cut_engagement) - final_clearing_radius * final_clearing_radius),
-    #             final_clearing_radius)
-    #         # Engage cut
-    #         position[1] = pocket_clearing_centre[1] - total_cartesian_cut_engagement
-    #         operation_commands.append(G1(y=position[1], f=tool_options.feed_rate))
-    #
-    #         if not isclose(total_cartesian_cut_engagement, final_clearing_radius, abs_tol=pow(10, -precision)):
-    #             # Arc around original clearing centre
-    #             position[0] = pocket_clearing_centre[0] + total_cartesian_cut_engagement
-    #             position[1] = pocket_clearing_centre[1] - final_clearing_radius
-    #             operation_commands.append(G2(x=position[0], y=position[1], i=-pocket_path_size[0] / 2, j=total_cartesian_cut_engagement, f=tool_options.feed_rate))
-    #         # Disengage cut
-    #         position[0] = pocket_clearing_centre[0] + last_cartesian_cut_engagement
-    #         operation_commands.append(G1(x=position[0], f=tool_options.feed_rate))
-    #         # Move to original cut start
-    #         position[0] = pocket_clearing_centre[0] + final_clearing_radius
-    #         position[1] = pocket_clearing_centre[1] - total_cartesian_cut_engagement
-    #         operation_commands.append(G0(x=position[0], y=position[1]))
-    #
-    #         last_cartesian_cut_engagement = total_cartesian_cut_engagement
+    def _clear_near_corners(self, pocket_clearing_centre, final_clearing_radius, position, operation_commands, options):
+        precision = options.output.position_precision
+        tool_options = options.tool
+
+        operation_commands.append(Comment('Clear nearest corners'))
+        br_corner_commands = []
+        radial_distance_to_corner = final_clearing_radius * (sqrt(2) - 1)
+        bottom_corner_stepover = radial_distance_to_corner / ceil(radial_distance_to_corner / tool_options.max_stepover)
+
+        # Clear bottom-right corner
+        position[0] = pocket_clearing_centre[0] + final_clearing_radius
+        br_corner_commands.append(G0(x=position[0], y=position[1]))
+
+        total_radial_cut_engagement = 0
+        last_cartesian_cut_engagement = 0
+        while not isclose(last_cartesian_cut_engagement, final_clearing_radius, abs_tol=pow(10, -precision)):
+            total_radial_cut_engagement += bottom_corner_stepover
+            total_cartesian_cut_engagement = min(
+                sqrt((final_clearing_radius + total_radial_cut_engagement) * (
+                            final_clearing_radius + total_radial_cut_engagement) - final_clearing_radius * final_clearing_radius),
+                final_clearing_radius)
+            # Engage cut
+            position[1] = pocket_clearing_centre[1] - total_cartesian_cut_engagement
+            br_corner_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
+
+            final_pass = isclose(total_cartesian_cut_engagement, final_clearing_radius, abs_tol=pow(10, -precision))
+            if not final_pass:
+                # Arc around original clearing centre
+                position[0] = pocket_clearing_centre[0] + total_cartesian_cut_engagement
+                position[1] = pocket_clearing_centre[1] - final_clearing_radius
+                br_corner_commands.append(
+                    G2(x=position[0], y=position[1], i=-final_clearing_radius, j=total_cartesian_cut_engagement,
+                       f=tool_options.feed_rate))
+            # Disengage cut
+            position[0] = pocket_clearing_centre[0] + last_cartesian_cut_engagement
+            br_corner_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
+            # Move to original cut start
+            if not final_pass:
+                position[0] = pocket_clearing_centre[0] + final_clearing_radius
+                position[1] = pocket_clearing_centre[1] - total_cartesian_cut_engagement
+                br_corner_commands.append(G0(x=position[0], y=position[1]))
+
+            last_cartesian_cut_engagement = total_cartesian_cut_engagement
+
+        br_corner_commands.append(Comment('Clear first corner'))
+        operation_commands.extend(br_corner_commands)
+        corner_commands = []
+        corner_commands.extend(br_corner_commands)
+        corner_commands.append(Comment('Clear second corner'))
+        rotation = Rotation(
+            [
+                lambda x, y, z: (y + pocket_clearing_centre[0] - pocket_clearing_centre[1]) if y is not None else None,
+                lambda x, y, z: (pocket_clearing_centre[0] + pocket_clearing_centre[1] - x) if x is not None else None,
+                lambda x, y, z: z if z is not None else None
+            ],
+            [
+                lambda x, y, z: y if y is not None else None,
+                lambda x, y, z: -x if x is not None else None,
+                lambda x, y, z: z if z is not None else None
+            ]
+        )
+        for br_corner_command in br_corner_commands:
+            bl_corner_command = deepcopy(br_corner_command)
+            operation_commands.append(
+                bl_corner_command.transform(rotation)
+            )
+            corner_commands.append(bl_corner_command)
+
+        new_position = rotation.transform_absolute(position)
+        position[0] = new_position[0]
+        position[1] = new_position[1]
+
+        return corner_commands
+
+    def _clear_far_corners(self, pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options):
+        precision = options.output.position_precision
+        tool_options = options.tool
+
+        operation_commands.append(Comment('Clear furthest corners'))
+
+        total_arc_distance = pocket_clearing_size[1] - 2 * final_clearing_radius
+        if isclose(total_arc_distance, 0, abs_tol=pow(10, -precision)):
+            # Repeat existing corner commands
+            rotation = Rotation(
+                [
+                    lambda x, y, z: (y + pocket_clearing_centre[0] - pocket_clearing_centre[1]) if y is not None else None,
+                    lambda x, y, z: (pocket_clearing_centre[0] + pocket_clearing_centre[1] - x) if x is not None else None,
+                    lambda x, y, z: z if z is not None else None
+                ],
+                [
+                    lambda x, y, z: y if y is not None else None,
+                    lambda x, y, z: -x if x is not None else None,
+                    lambda x, y, z: z if z is not None else None
+                ]
+            )
+            for corner_command in corner_commands:
+                operation_commands.append(deepcopy(corner_command).transform(rotation).transform(rotation))
+
+            new_position = rotation.transform_absolute(rotation.transform_absolute(position))
+            position[0] = new_position[0]
+            position[1] = new_position[1]
+            return
+
+        arcing_stepover = total_arc_distance / ceil(total_arc_distance / tool_options.max_stepover)

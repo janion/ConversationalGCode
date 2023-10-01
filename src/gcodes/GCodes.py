@@ -54,10 +54,10 @@ class G0(Comment):
         return f'G0{x_pos}{y_pos}{z_pos}{end}'
 
     def transform(self, transformation):
-        new_x = transformation.absolute[0](self.x, self.y)
-        new_y = transformation.absolute[1](self.x, self.y)
-        self.x = new_x
-        self.y = new_y
+        new_point = transformation.transform_absolute([self.x, self.y, self.z])
+        self.x = new_point[0]
+        self.y = new_point[1]
+        self.z = new_point[2]
 
         return self
 
@@ -102,11 +102,11 @@ class G2(G1):
     def transform(self, transformation):
         super().transform(transformation)
 
-        new_i = transformation.relative[0](self.i, self.j)
-        new_j = transformation.relative[1](self.i, self.j)
+        new_point = transformation.transform_relative([self.i, self.j, self.k])
 
-        self.i = new_i
-        self.j = new_j
+        self.i = new_point[0]
+        self.j = new_point[1]
+        self.k = new_point[2]
 
         return self
 
