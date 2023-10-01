@@ -9,7 +9,7 @@ class Comment:
         return ';' if self.comment == '' else f'; {self.comment}'
 
     def transpose(self):
-        pass
+        return self
 
 
 @dataclass
@@ -55,6 +55,7 @@ class G0(Comment):
 
     def transpose(self):
         self.x, self.y = self.y, self.x
+        return self
 
 
 @dataclass
@@ -97,6 +98,7 @@ class G2(G1):
     def transpose(self):
         super().transpose()
         self.i, self.j = self.j, self.i
+        return self
 
 
 @dataclass
