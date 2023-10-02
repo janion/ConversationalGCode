@@ -11,6 +11,11 @@ class CommandPrinter:
         print(command.format(self.output_options))
         self.commands.append(command)
 
+    def extend(self, commands):
+        for command in commands:
+            print(command.format(self.output_options))
+        self.commands.extend(commands)
+
     def __iter__(self):
         return self.commands.__iter__()
 
@@ -25,9 +30,9 @@ class GcodeGenerator:
         self._operations.append(operation)
 
     def generate(self, position=None):
-        # commands = CommandPrinter()
         if position is None:
             position = [0, 0, 0]
+        # commands = CommandPrinter()
         commands = []
 
         position[2] = self._options.job.clearance_height

@@ -26,8 +26,8 @@ class RectangularPocket:
         #########
         # Setup #
         #########
-        # operation_commands = CommandPrinter(options.output)
-        operation_commands = []
+        operation_commands = CommandPrinter(options.output)
+        # operation_commands = []
 
         precision = options.output.position_precision
         tool_options = options.tool
@@ -97,6 +97,9 @@ class RectangularPocket:
             corner_commands = self._clear_near_corners(pocket_clearing_centre, final_clearing_radius, position, operation_commands, options)
 
             # Clear arcs up to edge
+            self._clear_centre(pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options)
+
+            # Clear far corners
             self._clear_far_corners(pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options)
 
     #     # Finishing pass
@@ -142,7 +145,7 @@ class RectangularPocket:
         operation_commands.append(Comment('Clear nearest corners'))
         br_corner_commands = []
         radial_distance_to_corner = final_clearing_radius * (sqrt(2) - 1)
-        bottom_corner_stepover = radial_distance_to_corner / ceil(radial_distance_to_corner / tool_options.max_stepover)
+        bottom_corner_radial_stepover = radial_distance_to_corner / ceil(radial_distance_to_corner / tool_options.max_stepover)
 
         # Clear bottom-right corner
         position[0] = pocket_clearing_centre[0] + final_clearing_radius
@@ -151,7 +154,7 @@ class RectangularPocket:
         total_radial_cut_engagement = 0
         last_cartesian_cut_engagement = 0
         while not isclose(last_cartesian_cut_engagement, final_clearing_radius, abs_tol=pow(10, -precision)):
-            total_radial_cut_engagement += bottom_corner_stepover
+            total_radial_cut_engagement += bottom_corner_radial_stepover
             total_cartesian_cut_engagement = min(
                 sqrt((final_clearing_radius + total_radial_cut_engagement) * (
                             final_clearing_radius + total_radial_cut_engagement) - final_clearing_radius * final_clearing_radius),
@@ -209,7 +212,7 @@ class RectangularPocket:
 
         return corner_commands
 
-    def _clear_far_corners(self, pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options):
+    def _clear_centre(self, pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options):
         precision = options.output.position_precision
         tool_options = options.tool
 
@@ -239,3 +242,78 @@ class RectangularPocket:
             return
 
         arcing_stepover = total_arc_distance / ceil(total_arc_distance / tool_options.max_stepover)
+
+        # Move to start position
+        position[0] = pocket_clearing_centre[0] - final_clearing_radius
+        position[1] = pocket_clearing_centre[1]
+        operation_commands.append(G0(x=position[0], y=pocket_clearing_centre[1], comment='Move to arc start'))
+
+        total_radial_cut_engagement = 0
+        last_cartesian_stepover = 0
+        while not isclose(total_radial_cut_engagement, total_arc_distance, abs_tol=pow(10, -precision)):
+            total_radial_cut_engagement += arcing_stepover
+            total_cartesian_stepover = sqrt((final_clearing_radius + total_radial_cut_engagement) * (
+                            final_clearing_radius + total_radial_cut_engagement) - final_clearing_radius * final_clearing_radius)
+
+            # Engage cut
+            position[1] = pocket_clearing_centre[1] + total_cartesian_stepover
+            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
+            # Traverse arc
+            position[0] = pocket_clearing_centre[0] + final_clearing_radius
+            operation_commands.append(G2(x=position[0], y=position[1], i=final_clearing_radius, j=pocket_clearing_centre[1] - position[1], f=tool_options.feed_rate))
+            # Disengage cut
+            position[1] = pocket_clearing_centre[1] + last_cartesian_stepover
+            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
+
+            # Move to previous start position
+            position[0] = pocket_clearing_centre[0] - final_clearing_radius
+            position[1] = pocket_clearing_centre[1] + total_cartesian_stepover
+            operation_commands.append(G0(x=position[0], y=position[1]))
+
+            last_cartesian_stepover = total_cartesian_stepover
+
+    def _clear_far_corners(self, pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options):
+        tool_options = options.tool
+        precision = options.output.position_precision
+
+        operation_commands.append(Comment('Clear far corners'))
+
+        final_arcing_radius = pocket_clearing_size[1] - final_clearing_radius
+        radial_distance_to_corner = sqrt(final_arcing_radius * final_arcing_radius + final_clearing_radius * final_clearing_radius) - final_arcing_radius
+        radial_stepover = radial_distance_to_corner / ceil(radial_distance_to_corner / tool_options.max_stepover)
+
+        # Move to start position
+        position[0] = pocket_clearing_centre[0] - final_clearing_radius
+        position[1] = pocket_clearing_centre[1] + sqrt(final_arcing_radius * final_arcing_radius - pocket_clearing_size[0] * pocket_clearing_size[0] / 4)
+        operation_commands.append(G0(x=position[0], y=position[1], comment='Move to arc start'))
+
+        total_radial_cut_engagement = 0
+        last_cartesian_stepout = 0
+        while not isclose(total_radial_cut_engagement, radial_distance_to_corner, abs_tol=pow(10, -precision)):
+            total_radial_cut_engagement += radial_stepover
+            total_radius = final_arcing_radius + total_radial_cut_engagement
+            total_cartesian_stepin = sqrt(total_radius * total_radius - final_clearing_radius * final_clearing_radius)
+            total_cartesian_stepout = sqrt(total_radius * total_radius - final_arcing_radius * final_arcing_radius)
+
+            # Engage cut
+            position[1] = pocket_clearing_centre[1] + total_cartesian_stepin
+            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
+
+            if not isclose(total_radial_cut_engagement, radial_distance_to_corner, abs_tol=pow(10, -precision)):
+                # Traverse arc
+                position[0] = pocket_clearing_centre[0] - total_cartesian_stepout
+                j = pocket_clearing_centre[1] - position[1]
+                position[1] = pocket_clearing_centre[1] + pocket_clearing_size[1] - final_clearing_radius
+                operation_commands.append(G2(x=position[0], y=position[1], i=final_clearing_radius, j=j, f=tool_options.feed_rate))
+
+            # Disengage cut
+            position[0] = pocket_clearing_centre[0] - last_cartesian_stepout
+            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
+
+            if not isclose(total_radial_cut_engagement, radial_distance_to_corner, abs_tol=pow(10, -precision)):
+                # Move to previous start position
+                position[0] = pocket_clearing_centre[0] - final_clearing_radius
+                position[1] = pocket_clearing_centre[1] + total_cartesian_stepin
+                operation_commands.append(G0(x=position[0], y=position[1]))
+
+            last_cartesian_stepout = total_cartesian_stepout

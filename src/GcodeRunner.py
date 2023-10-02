@@ -31,11 +31,12 @@ if __name__ == '__main__':
     # gcode_generator.add_operation(CircularPocket(0, 0, 0, 8, 2, False))
     # gcode_generator.add_operation(CircularPocket(0, 0, 0, 26, 2, False))
 
-    # gcode_generator.add_operation(RectangularPocket(centre_x=0, centre_y=0, width=22, length=32, depth=1))
+    gcode_generator.add_operation(RectangularPocket(centre_x=10, centre_y=10, width=22, length=32, depth=1))
     # gcode_generator.add_operation(RectangularPocket(centre_x=0, centre_y=0, width=32, length=22, depth=1))
     # gcode_generator.add_operation(RectangularPocket(centre_x=10, centre_y=10, width=22, length=32, depth=1))
     # gcode_generator.add_operation(RectangularPocket(centre_x=10, centre_y=10, width=32, length=22, depth=1))
-    gcode_generator.add_operation(RectangularPocket(centre_x=10, centre_y=10, width=32, length=32, depth=1))
+
+    # gcode_generator.add_operation(RectangularPocket(centre_x=10, centre_y=10, width=32, length=32, depth=1))
 
     position = [0, 0, 0]
     commands = gcode_generator.generate(position=position)
