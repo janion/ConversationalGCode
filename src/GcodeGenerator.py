@@ -17,7 +17,7 @@ class CommandPrinter:
         self.commands.extend(commands)
 
     def __iter__(self):
-        return self.commands.__iter__()
+        return [].__iter__()
 
 
 class GcodeGenerator:
