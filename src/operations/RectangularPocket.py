@@ -6,8 +6,6 @@ from operations.Operations import helical_plunge, spiral_out
 from gcodes.GCodes import Comment, G0, G1, G2
 from transform.Rotation import Rotation
 
-from GcodeGenerator import CommandPrinter
-
 
 @dataclass
 class RectangularPocket:
@@ -19,15 +17,13 @@ class RectangularPocket:
     width: float = None  # mm
     length: float = None  # mm
     depth: float = None  # mm
-    # corner_radius: float = None  # mm
     finishing_pass: bool = False  # mm
 
     def generate(self, position, commands, options):
         #########
         # Setup #
         #########
-        operation_commands = CommandPrinter(options.output)
-        # operation_commands = []
+        operation_commands = []
 
         precision = options.output.position_precision
         tool_options = options.tool
@@ -102,11 +98,12 @@ class RectangularPocket:
             # Clear far corners
             self._clear_far_corners(pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options)
 
-    #     # Finishing pass
-    #     if has_finishing_pass:
-    #         self._finishing_pass(position, operation_commands, tool_options, job_options)
-    #     # Clear wall
-    #     self._clear_wall(position, operation_commands, job_options)
+        # Finishing pass
+        if has_finishing_pass:
+            self._finishing_pass(position, operation_commands, options)
+
+        # Clear wall
+        self._clear_wall(position, operation_commands)
 
         if rotated:
             position[0] = position[1]
@@ -283,8 +280,8 @@ class RectangularPocket:
 
         tl_corner_commands.append(Comment('First far corner'))
         tr_corner_commands_and_positions.append([
-            [None, None],
-            lambda x, y: Comment('Second far corner')
+            [None, None, None],
+            lambda x, y, z: Comment('Second far corner')
         ])
 
         final_arcing_radius = pocket_clearing_size[1] - final_clearing_radius
@@ -296,8 +293,8 @@ class RectangularPocket:
         position[1] = pocket_clearing_centre[1] + sqrt(final_arcing_radius * final_arcing_radius - pocket_clearing_size[0] * pocket_clearing_size[0] / 4)
         tl_corner_commands.append(G0(x=position[0], y=position[1], comment='Move to arc start'))
         tr_corner_commands_and_positions.append([
-            [pocket_clearing_centre[0], pocket_clearing_centre[1] + final_arcing_radius],
-            lambda x, y: G0(x=x, y=y, comment='Move to arc start')
+            [pocket_clearing_centre[0], pocket_clearing_centre[1] + final_arcing_radius, position[2]],
+            lambda x, y, z: G0(x=x, y=y, comment='Move to arc start')
         ])
 
         total_radial_cut_engagement = 0
@@ -313,8 +310,8 @@ class RectangularPocket:
             position[1] = pocket_clearing_centre[1] + total_cartesian_stepin
             tl_corner_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
             tr_corner_commands_and_positions.append([
-                [pocket_clearing_centre[0] + total_cartesian_stepout, tr_corner_commands_and_positions[-1][0][1]],
-                lambda x, y: G1(x=x, y=y, f=tool_options.feed_rate)
+                [pocket_clearing_centre[0] + total_cartesian_stepout, tr_corner_commands_and_positions[-1][0][1], position[2]],
+                lambda x, y, z: G1(x=x, y=y, f=tool_options.feed_rate)
             ])
 
             if not isclose(total_radial_cut_engagement, radial_distance_to_corner, abs_tol=pow(10, -precision)):
@@ -325,8 +322,8 @@ class RectangularPocket:
                 tl_corner_commands.append(G2(x=position[0], y=position[1], i=final_clearing_radius, j=j, f=tool_options.feed_rate))
 
                 tr_corner_commands_and_positions.append([
-                    [pocket_clearing_centre[0] + final_clearing_radius, pocket_clearing_centre[1] + total_cartesian_stepin],
-                    (lambda tmp_step: lambda x, y: G2(x=x, y=y, i=-tmp_step, j=-final_arcing_radius, f=tool_options.feed_rate))(total_cartesian_stepout)
+                    [pocket_clearing_centre[0] + final_clearing_radius, pocket_clearing_centre[1] + total_cartesian_stepin, position[2]],
+                    (lambda tmp_step: lambda x, y, z: G2(x=x, y=y, i=-tmp_step, j=-final_arcing_radius, f=tool_options.feed_rate))(total_cartesian_stepout)
                 ])
 
             # Disengage cut
@@ -334,8 +331,8 @@ class RectangularPocket:
             tl_corner_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
 
             tr_corner_commands_and_positions.append([
-                [tr_corner_commands_and_positions[-1][0][0], pocket_clearing_centre[1] + last_cartesian_stepin],
-                lambda x, y: G1(x=x, y=y, f=tool_options.feed_rate)
+                [tr_corner_commands_and_positions[-1][0][0], pocket_clearing_centre[1] + last_cartesian_stepin, position[2]],
+                lambda x, y, z: G1(x=x, y=y, f=tool_options.feed_rate)
             ])
 
             if not isclose(total_radial_cut_engagement, radial_distance_to_corner, abs_tol=pow(10, -precision)):
@@ -345,8 +342,8 @@ class RectangularPocket:
                 tl_corner_commands.append(G0(x=position[0], y=position[1]))
 
                 tr_corner_commands_and_positions.append([
-                    [pocket_clearing_centre[0] + total_cartesian_stepout, pocket_clearing_centre[1] + final_arcing_radius],
-                    lambda x, y: G0(x=x, y=y)
+                    [pocket_clearing_centre[0] + total_cartesian_stepout, pocket_clearing_centre[1] + final_arcing_radius, position[2]],
+                    lambda x, y, z: G0(x=x, y=y)
                 ])
 
             last_cartesian_stepin = total_cartesian_stepin
@@ -354,4 +351,45 @@ class RectangularPocket:
 
         operation_commands.extend(tl_corner_commands)
         for point, command in tr_corner_commands_and_positions:
+            position[0:3] = point
             operation_commands.append(command(*point))
+
+    def _finishing_pass(self, position, operation_commands, options):
+        tool_options = options.tool
+
+        operation_commands.append(Comment(f'{tool_options.finishing_pass}mm finishing pass'))
+
+        finishing_size = [self.width - tool_options.tool_diameter, self.length - tool_options.tool_diameter]
+
+        # Feed into cut
+        position[0] = self.centre_x + finishing_size[0] / 2
+        operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
+
+        initial_y_position = position[1]
+        if tool_options.finishing_climb:
+            position[1] = self.centre_y + finishing_size[1] / 2
+            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
+            position[0] = self.centre_x - finishing_size[0] / 2
+            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
+            position[1] = self.centre_y - finishing_size[1] / 2
+            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
+            position[0] = self.centre_x + finishing_size[0] / 2
+            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
+            position[1] = initial_y_position
+            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
+        else:
+            position[1] = self.centre_y - finishing_size[1] / 2
+            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
+            position[0] = self.centre_x - finishing_size[0] / 2
+            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
+            position[1] = self.centre_y + finishing_size[1] / 2
+            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
+            position[0] = self.centre_x + finishing_size[0] / 2
+            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
+            position[1] = initial_y_position
+            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
+
+    def _clear_wall(self, position, operation_commands):
+        position[0] = max(self.centre_x, position[0] - 1)
+        position[1] = max(self.centre_y, position[1] - 1)
+        operation_commands.append(G0(x=position[0], y=position[1], comment='Clear wall'))

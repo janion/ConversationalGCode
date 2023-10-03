@@ -76,6 +76,7 @@ class ToolOptions:
 
         self._finishing_pass = finishing_pass
         self._finishing_feed_rate = finishing_feed_rate
+        self._finishing_climb = finishing_climb
 
     tool_flutes = property(fget=lambda self: self._tool_flutes)
     tool_diameter = property(fget=lambda self: self._tool_diameter)
@@ -94,3 +95,4 @@ class ToolOptions:
 
     finishing_pass = property(fget=lambda self: self._finishing_pass)
     finishing_feed_rate = property(fget=lambda self: self._finishing_feed_rate)
+    finishing_climb = property(fget=lambda self: self._finishing_climb)
