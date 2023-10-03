@@ -115,12 +115,15 @@ class RectangularPocket:
             # Clear far corners
             self._clear_far_corners(pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options)
 
+            # Clear wall
+            self._clear_wall(position, operation_commands, job_options)
+
         # Finishing pass
         if has_finishing_pass:
             self._finishing_pass(pocket_final_size, position, operation_commands, options)
 
         # Clear wall
-        self._clear_wall(position, operation_commands)
+        self._clear_wall(position, operation_commands, job_options)
 
         if rotated:
             position[0] = position[1]
@@ -404,7 +407,8 @@ class RectangularPocket:
             position[1] = initial_y_position
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
 
-    def _clear_wall(self, position, operation_commands):
+    def _clear_wall(self, position, operation_commands, job_options):
         position[0] = max(self._centre[0], position[0] - 1)
         position[1] = max(self._centre[1], position[1] - 1)
-        operation_commands.append(G0(x=position[0], y=position[1], comment='Clear wall'))
+        position[2] += job_options.lead_in
+        operation_commands.append(G0(x=position[0], y=position[1], z=position[2], comment='Clear wall'))
