@@ -7,18 +7,24 @@ from gcodes.GCodes import Comment, G0, G2, G3
 class CircularPocket:
 
     def __init__(self,
-                 centre_x: float,
-                 centre_y: float,
+                 centre: list,
                  start_depth: float,
                  diameter: float,
                  depth: float,
                  finishing_pass: bool = False):
-        self._centre_x = centre_x
-        self._centre_y = centre_y
+        if diameter is None or diameter <= 0:
+            raise ValueError('Pocket diameter must be positive and non-zero')
+        elif depth is None or depth <= 0:
+            raise ValueError('Pocket depth must be positive and non-zero')
+        elif centre is None:
+            raise ValueError('Pocket centre coordinates must be specified')
+        elif start_depth is None:
+            raise ValueError('Pocket start depth must be specified')
+        self._centre = centre
         self._start_depth = start_depth
         self._diameter = diameter
         self._depth = depth
-        self._finishing_pass = finishing_pass
+        self._finishing_pass = finishing_pass is not None and finishing_pass
 
     def generate(self, position, commands, options):
         #########
@@ -52,7 +58,7 @@ class CircularPocket:
 
         if final_path_radius <= tool_options.max_helix_stepover:
             # Helical interpolate to final depth as there is no need to spiral out to final diameter
-            helical_plunge((self._centre_x, self._centre_y), initial_path_radius, total_plunge, position,
+            helical_plunge((self._centre[0], self._centre[1]), initial_path_radius, total_plunge, position,
                            commands, tool_options, precision)
         else:
             # Mill out material in depth steps
@@ -63,7 +69,7 @@ class CircularPocket:
                 position[2] = deepest_cut_depth
 
                 # Helical interpolate to depth
-                helical_plunge((self._centre_x, self._centre_y), path_radius, step_plunge, position,
+                helical_plunge((self._centre[0], self._centre[1]), path_radius, step_plunge, position,
                                commands, tool_options, precision)
 
                 deepest_cut_depth = position[2]
@@ -84,17 +90,17 @@ class CircularPocket:
 
     def _move_to_centre(self, position, commands, job_options):
         # Position tool at hole centre
-        position[0] = self._centre_x
-        position[1] = self._centre_y
+        position[0] = self._centre[0]
+        position[1] = self._centre[1]
         commands.append(G0(x=position[0], y=position[1], comment='Move to hole position'))
         position[2] = self._start_depth + job_options.lead_in
         commands.append(G0(z=position[2], comment='Move to hole start depth'))
 
     def _clear_wall(self, position, commands, job_options):
-        if position[0] > self._centre_x:
-            position[0] = max(position[0] - 1, self._centre_x)
+        if position[0] > self._centre[0]:
+            position[0] = max(position[0] - 1, self._centre[0])
         else:
-            position[0] = min(position[0] + 1, self._centre_x)
+            position[0] = min(position[0] + 1, self._centre[0])
 
         position[2] += job_options.lead_in
         commands.append(G0(x=position[0], z=position[2], comment='Move cutter away from wall'))
@@ -102,13 +108,13 @@ class CircularPocket:
     def _create_finishing_pass(self, position, commands, tool_options, job_options):
         commands.append(Comment(f'Finishing pass of {tool_options.finishing_pass}mm'))
 
-        is_left = self._centre_x > position[0]
+        is_left = self._centre[0] > position[0]
 
         if is_left:
-            path_radius = self._centre_x - position[0]
+            path_radius = self._centre[0] - position[0]
             relative_centre_multiplier = 1
         else:
-            path_radius = position[0] - self._centre_x
+            path_radius = position[0] - self._centre[0]
             relative_centre_multiplier = -1
 
         # Spiral out to finishing depth over half turn
