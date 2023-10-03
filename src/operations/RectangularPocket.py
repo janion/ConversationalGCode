@@ -1,23 +1,45 @@
 from math import ceil, pow, isclose, sqrt
 from copy import deepcopy
-from dataclasses import dataclass
 
 from operations.Operations import helical_plunge, spiral_out
 from gcodes.GCodes import Comment, G0, G1, G2
 from transform.Rotation import Rotation
 
 
-@dataclass
 class RectangularPocket:
-    centre_x: float = None  # mm
-    centre_y: float = None  # mm
-    corner_x: float = None  # mm
-    corner_y: float = None  # mm
-    start_depth: float = 0  # mm
-    width: float = None  # mm
-    length: float = None  # mm
-    depth: float = None  # mm
-    finishing_pass: bool = False  # mm
+
+    def __init__(self,
+                 width: float,
+                 length: float,
+                 depth: float,
+                 centre: list = None,
+                 corner: list = None,
+                 start_depth: float = 0,
+                 finishing_pass: bool = False):
+        if width is None or width <= 0:
+            raise ValueError('Pocket width must be positive and non-zero')
+        elif length is None or length <= 0:
+            raise ValueError('Pocket length must be positive and non-zero')
+        elif depth is None or depth <= 0:
+            raise ValueError('Pocket depth must be positive and non-zero')
+        elif centre is None and corner is None:
+            raise ValueError('Pocket corner or centre coordinates must be specified')
+        elif centre is not None and corner is not None:
+            raise ValueError('Pocket corner or centre coordinates must be specified, not both')
+        elif start_depth is None:
+            raise ValueError('Pocket start depth must be specified')
+
+        self._width = width
+        self._length = length
+        self._depth = depth
+        
+        if centre is not None:
+            self._centre = centre
+        else:
+            self._centre = [corner[0] + width / 2, corner[1] + length / 2]
+        
+        self.start_depth = start_depth
+        self.finishing_pass = finishing_pass is not None and finishing_pass
 
     def generate(self, position, commands, options):
         #########
@@ -31,35 +53,30 @@ class RectangularPocket:
 
         has_finishing_pass = self.finishing_pass and tool_options.finishing_pass > 0
 
-        if self.width is None or self.length is None or self.depth is None:
+        if self._width is None or self._length is None or self._depth is None:
             raise ValueError('Rectangular pocket must have width, length and depth defined.')
 
-        if self.centre_x is not None and self.centre_y is not None:
-            pocket_centre = [self.centre_x, self.centre_y]
-        elif self.corner_x is not None and self.corner_y is not None:
-            pocket_centre = [self.corner_x + self.width / 2, self.corner_y + self.length / 2]
-        else:
-            raise ValueError('Rectangular pocket must have either corner x & y, or centre x & y defined.')
-
-        pocket_clearing_size = [self.width - tool_options.tool_diameter, self.length - tool_options.tool_diameter]
+        pocket_clearing_size = [self._width - tool_options.tool_diameter, self._length - tool_options.tool_diameter]
+        pocket_final_size = [self._width - tool_options.tool_diameter, self._length - tool_options.tool_diameter]
         if has_finishing_pass:
-            pocket_clearing_size[0] -= tool_options.finishing_pass
-            pocket_clearing_size[1] -= tool_options.finishing_pass
+            pocket_clearing_size[0] -= 2 * tool_options.finishing_pass
+            pocket_clearing_size[1] -= 2 * tool_options.finishing_pass
 
         rotated = False
-        if self.width > self.length:
+        if self._width > self._length:
             pocket_clearing_size.reverse()
+            pocket_final_size.reverse()
             position[0] = -position[1]
             position[1] = position[0]
             rotated = True
-        pocket_clearing_centre = [pocket_centre[0], pocket_centre[1] + (pocket_clearing_size[0] - pocket_clearing_size[1]) / 2]
+        pocket_clearing_centre = [self._centre[0], self._centre[1] + (pocket_clearing_size[0] - pocket_clearing_size[1]) / 2]
 
-        if self.width <= tool_options.tool_diameter or self.length <= tool_options.tool_diameter:
+        if self._width <= tool_options.tool_diameter or self._length <= tool_options.tool_diameter:
             raise ValueError(
-                f'Pocket size [{self.width}, {self.length}]mm must be greater than tool diameter {tool_options.tool_diameter}mm')
+                f'Pocket size [{self._width}, {self._length}]mm must be greater than tool diameter {tool_options.tool_diameter}mm')
         elif has_finishing_pass and pocket_clearing_size[0] <= 0:
             raise ValueError(
-                f'Pocket size [{self.width}, {self.length}]mm must be greater than tool diameter {tool_options.tool_diameter}mm and give room for a finishing pass of {tool_options.finishing_pass}mm')
+                f'Pocket size [{self._width}, {self._length}]mm must be greater than tool diameter {tool_options.tool_diameter}mm and give room for a finishing pass of {tool_options.finishing_pass}mm')
 
         final_clearing_radius = pocket_clearing_size[0] / 2
         initial_clearing_radius = min(final_clearing_radius, tool_options.max_helix_stepover)
@@ -67,13 +84,13 @@ class RectangularPocket:
         # Position tool ready to begin
         self._move_to_start(pocket_clearing_centre + [self.start_depth], position, operation_commands, job_options)
 
-        total_plunge = job_options.lead_in + self.depth
+        total_plunge = job_options.lead_in + self._depth
         step_plunge = total_plunge / ceil(total_plunge / tool_options.max_stepdown)
 
         ####################################
         # Mill out material in depth steps #
         ####################################
-        final_depth = self.start_depth - self.depth
+        final_depth = self.start_depth - self._depth
         deepest_cut_depth = position[2]
         while not isclose(deepest_cut_depth, final_depth, abs_tol=pow(10, -precision)):
             clearing_radius = initial_clearing_radius
@@ -100,7 +117,7 @@ class RectangularPocket:
 
         # Finishing pass
         if has_finishing_pass:
-            self._finishing_pass(position, operation_commands, options)
+            self._finishing_pass(pocket_final_size, position, operation_commands, options)
 
         # Clear wall
         self._clear_wall(position, operation_commands)
@@ -112,8 +129,8 @@ class RectangularPocket:
                 command.transform(
                     Rotation(
                         [
-                            lambda x, y, z: (y + pocket_centre[0] - pocket_centre[1]) if y is not None else None,
-                            lambda x, y, z: (pocket_centre[0] + pocket_centre[1] - x) if x is not None else None,
+                            lambda x, y, z: (y + self._centre[0] - self._centre[1]) if y is not None else None,
+                            lambda x, y, z: (self._centre[0] + self._centre[1] - x) if x is not None else None,
                             lambda x, y, z: z if z is not None else None
                         ],
                         [
@@ -354,42 +371,40 @@ class RectangularPocket:
             position[0:3] = point
             operation_commands.append(command(*point))
 
-    def _finishing_pass(self, position, operation_commands, options):
+    def _finishing_pass(self, pocket_final_size, position, operation_commands, options):
         tool_options = options.tool
 
         operation_commands.append(Comment(f'{tool_options.finishing_pass}mm finishing pass'))
 
-        finishing_size = [self.width - tool_options.tool_diameter, self.length - tool_options.tool_diameter]
-
         # Feed into cut
-        position[0] = self.centre_x + finishing_size[0] / 2
+        position[0] = self._centre[0] + pocket_final_size[0] / 2
         operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
 
         initial_y_position = position[1]
         if tool_options.finishing_climb:
-            position[1] = self.centre_y + finishing_size[1] / 2
+            position[1] = self._centre[1] + pocket_final_size[1] / 2
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[0] = self.centre_x - finishing_size[0] / 2
+            position[0] = self._centre[0] - pocket_final_size[0] / 2
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[1] = self.centre_y - finishing_size[1] / 2
+            position[1] = self._centre[1] - pocket_final_size[1] / 2
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[0] = self.centre_x + finishing_size[0] / 2
+            position[0] = self._centre[0] + pocket_final_size[0] / 2
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
             position[1] = initial_y_position
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
         else:
-            position[1] = self.centre_y - finishing_size[1] / 2
+            position[1] = self._centre[1] - pocket_final_size[1] / 2
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[0] = self.centre_x - finishing_size[0] / 2
+            position[0] = self._centre[0] - pocket_final_size[0] / 2
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[1] = self.centre_y + finishing_size[1] / 2
+            position[1] = self._centre[1] + pocket_final_size[1] / 2
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[0] = self.centre_x + finishing_size[0] / 2
+            position[0] = self._centre[0] + pocket_final_size[0] / 2
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
             position[1] = initial_y_position
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
 
     def _clear_wall(self, position, operation_commands):
-        position[0] = max(self.centre_x, position[0] - 1)
-        position[1] = max(self.centre_y, position[1] - 1)
+        position[0] = max(self._centre[0], position[0] - 1)
+        position[1] = max(self._centre[1], position[1] - 1)
         operation_commands.append(G0(x=position[0], y=position[1], comment='Clear wall'))
