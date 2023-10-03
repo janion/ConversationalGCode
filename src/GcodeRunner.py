@@ -1,16 +1,15 @@
 from src.GcodeGenerator import GcodeGenerator
-from operations.CircularPocket import CircularPocket
 from operations.RectangularPocket import RectangularPocket
-from src.Options import Options, ToolOptions, OutputOptions, JobOptions
+from options.Options import Options, ToolOptions, OutputOptions, JobOptions
 
 if __name__ == '__main__':
     tool_options = ToolOptions(
         tool_flutes=4,
-        tool_diameter=2,  # mm
+        tool_diameter=6,  # mm
         spindle_speed=4000,  # RPM
         feed_rate=480,  # mm per min
-        max_stepover=.5,  # mm
-        max_helix_stepover=2.5,  # mm
+        max_stepover=1,  # mm
+        max_helix_stepover=1,  # mm
         max_stepdown=4,  # mm
         finishing_pass=0.3,  # mm
         finishing_feed_rate=120  # mm per min
