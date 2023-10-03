@@ -3,7 +3,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 
 from operations.Operations import helical_plunge, spiral_out
-from gcodes.GCodes import Comment, G0, G1, G2, G3
+from gcodes.GCodes import Comment, G0, G1, G2
 from transform.Rotation import Rotation
 
 from GcodeGenerator import CommandPrinter
@@ -330,7 +330,7 @@ class RectangularPocket:
                 ])
 
             # Disengage cut
-            position[0] = pocket_clearing_centre[0] - total_cartesian_stepout
+            position[0] = pocket_clearing_centre[0] - last_cartesian_stepout
             tl_corner_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
 
             tr_corner_commands_and_positions.append([
