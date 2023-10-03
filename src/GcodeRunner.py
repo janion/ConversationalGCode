@@ -22,7 +22,7 @@ if __name__ == '__main__':
     options = Options(tool_options, job_options, output_options)
 
     gcode_generator = GcodeGenerator(options)
-    gcode_generator.add_operation(CircularPocket(centre_x=0, centre_y=0, start_depth=0, diameter=8, depth=2, finishing_pass=True))
+    # gcode_generator.add_operation(CircularPocket(centre_x=0, centre_y=0, start_depth=0, diameter=18, depth=2, finishing_pass=True))
     # gcode_generator.add_operation(CircularPocket(centre_x=0, centre_y=0, start_depth=0, diameter=26, depth=9, finishing_pass=True))
     # gcode_generator.add_operation(CircularPocket(centre_x=0, centre_y=0, start_depth=0, diameter=8, depth=9, finishing_pass=False))
     # gcode_generator.add_operation(CircularPocket(centre_x=0, centre_y=0, start_depth=0, diameter=26, depth=9, finishing_pass=False))
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     # gcode_generator.add_operation(RectangularPocket(centre=[10, 10], width=32, length=22, depth=1))
 
     # gcode_generator.add_operation(RectangularPocket(centre=[10, 10], width=22, length=32, depth=2, finishing_pass=True))
-    # gcode_generator.add_operation(RectangularPocket(centre=[10, 10], width=32, length=22, depth=2, finishing_pass=True))
+    gcode_generator.add_operation(RectangularPocket(centre=[10, 10], width=32, length=22, depth=2, finishing_pass=True))
 
     position = [0, 0, 0]
     commands = gcode_generator.generate(position=position)

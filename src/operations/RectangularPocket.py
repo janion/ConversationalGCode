@@ -38,8 +38,8 @@ class RectangularPocket:
         else:
             self._centre = [corner[0] + width / 2, corner[1] + length / 2]
         
-        self.start_depth = start_depth
-        self.finishing_pass = finishing_pass is not None and finishing_pass
+        self._start_depth = start_depth
+        self._finishing_pass = finishing_pass is not None and finishing_pass
 
     def generate(self, position, commands, options):
         #########
@@ -51,7 +51,7 @@ class RectangularPocket:
         tool_options = options.tool
         job_options = options.job
 
-        has_finishing_pass = self.finishing_pass and tool_options.finishing_pass > 0
+        has_finishing_pass = self._finishing_pass and tool_options.finishing_pass > 0
 
         if self._width is None or self._length is None or self._depth is None:
             raise ValueError('Rectangular pocket must have width, length and depth defined.')
@@ -82,7 +82,7 @@ class RectangularPocket:
         initial_clearing_radius = min(final_clearing_radius, tool_options.max_helix_stepover)
 
         # Position tool ready to begin
-        self._move_to_start(pocket_clearing_centre + [self.start_depth], position, operation_commands, job_options)
+        self._move_to_start(pocket_clearing_centre + [self._start_depth], position, operation_commands, job_options)
 
         total_plunge = job_options.lead_in + self._depth
         step_plunge = total_plunge / ceil(total_plunge / tool_options.max_stepdown)
@@ -90,7 +90,7 @@ class RectangularPocket:
         ####################################
         # Mill out material in depth steps #
         ####################################
-        final_depth = self.start_depth - self._depth
+        final_depth = self._start_depth - self._depth
         deepest_cut_depth = position[2]
         while not isclose(deepest_cut_depth, final_depth, abs_tol=pow(10, -precision)):
             clearing_radius = initial_clearing_radius
@@ -120,7 +120,7 @@ class RectangularPocket:
 
         # Finishing pass
         if has_finishing_pass:
-            self._finishing_pass(pocket_final_size, position, operation_commands, options)
+            self._create_finishing_pass(pocket_final_size, position, operation_commands, options)
 
         # Clear wall
         self._clear_wall(position, operation_commands, job_options)
@@ -374,7 +374,7 @@ class RectangularPocket:
             position[0:3] = point
             operation_commands.append(command(*point))
 
-    def _finishing_pass(self, pocket_final_size, position, operation_commands, options):
+    def _create_finishing_pass(self, pocket_final_size, position, operation_commands, options):
         tool_options = options.tool
 
         operation_commands.append(Comment(f'{tool_options.finishing_pass}mm finishing pass'))
