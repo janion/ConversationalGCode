@@ -44,34 +44,31 @@ class CircularPocket:
         total_plunge = job_options.lead_in + self.depth
         step_plunge = total_plunge / ceil(total_plunge / tool_options.max_stepdown)
 
-        ####################################
-        # Mill out material in depth steps #
-        ####################################
-        final_depth = self.start_depth - self.depth
-        deepest_cut_depth = position[2]
-        while not isclose(deepest_cut_depth, final_depth, abs_tol=pow(10, -precision)):
-            path_radius = initial_path_radius
-            position[2] = deepest_cut_depth
+        if final_path_radius <= tool_options.max_helix_stepover:
+            # Helical interpolate to final depth as there is no need to spiral out to final diameter
+            helical_plunge((self.centre_x, self.centre_y), initial_path_radius, total_plunge, position,
+                           commands, tool_options, precision)
+        else:
+            # Mill out material in depth steps
+            final_depth = self.start_depth - self.depth
+            deepest_cut_depth = position[2]
+            while not isclose(deepest_cut_depth, final_depth, abs_tol=pow(10, -precision)):
+                path_radius = initial_path_radius
+                position[2] = deepest_cut_depth
 
-            ################################
-            # Helical interpolate to depth #
-            ################################
-            if final_path_radius <= tool_options.max_helix_stepover:
-                helical_plunge((self.centre_x, self.centre_y), path_radius, total_plunge, position,
-                               commands, tool_options, precision)
-            else:
+                # Helical interpolate to depth
                 helical_plunge((self.centre_x, self.centre_y), path_radius, step_plunge, position,
                                commands, tool_options, precision)
 
-            deepest_cut_depth = position[2]
-            if not isclose(path_radius, final_path_radius, abs_tol=pow(10, -precision)):
-                # Spiral out to final radius
-                spiral_out(path_radius, final_path_radius, position, commands, tool_options, precision)
+                deepest_cut_depth = position[2]
+                if not isclose(path_radius, final_path_radius, abs_tol=pow(10, -precision)):
+                    # Spiral out to final radius
+                    spiral_out(path_radius, final_path_radius, position, commands, tool_options, precision)
 
-                # Return to centre
-                if not isclose(deepest_cut_depth, final_depth, abs_tol=pow(10, -precision)):
-                    self._clear_wall(position, commands, job_options)
-                commands.append(Comment())
+                    # Return to centre
+                    if not isclose(deepest_cut_depth, final_depth, abs_tol=pow(10, -precision)):
+                        self._clear_wall(position, commands, job_options)
+                    commands.append(Comment())
 
         # Finishing pass
         if has_finishing_pass:
