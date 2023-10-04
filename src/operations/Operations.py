@@ -2,6 +2,25 @@ from math import pi, ceil, tan, pow, isclose
 from gcodes.GCodes import Comment, G0, G2
 
 
+def rapid_with_z_hop(position, new_position, job_options, comment=None):
+    mid_position = [
+        (position[0] + (new_position[0] - position[0]) / 2) if position[0] is not None else new_position[0],
+        (position[1] + (new_position[1] - position[1]) / 2) if position[1] is not None else new_position[1],
+        (max(new_position[2], position[2]) + job_options.lead_in) if position[2] is not None else new_position[2] + job_options.lead_in
+    ]
+
+    rapid_positions = []
+    rapid_commands = []
+    rapid_positions.append(mid_position)
+    rapid_commands.append(G0(x=mid_position[0], y=mid_position[1], z=mid_position[2], comment=comment))
+    rapid_positions.append(new_position)
+    rapid_commands.append(G0(x=new_position[0], y=new_position[1], z=new_position[2]))
+
+    position[0:3] = new_position
+
+    return rapid_commands, rapid_positions
+
+
 def helical_plunge(centre, path_radius, plunge_depth, position, commands, tool_options, precision):
     # Position tool at 3 o'clock from hole centre
     position[0] = centre[0] + path_radius

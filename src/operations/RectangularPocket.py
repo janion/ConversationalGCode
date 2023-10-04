@@ -1,7 +1,7 @@
 from math import ceil, pow, isclose, sqrt
 from copy import deepcopy
 
-from operations.Operations import helical_plunge, spiral_out
+from operations.Operations import rapid_with_z_hop, helical_plunge, spiral_out
 from gcodes.GCodes import Comment, G0, G1, G2
 from transform.Rotation import Rotation
 
@@ -115,8 +115,9 @@ class RectangularPocket:
             # Clear far corners
             self._clear_far_corners(pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options)
 
-            # Clear wall
-            self._clear_wall(position, operation_commands, job_options)
+            if not isclose(deepest_cut_depth, final_depth, abs_tol=pow(10, -precision)):
+                # Clear wall
+                self._clear_wall(position, operation_commands, job_options)
 
         # Finishing pass
         if has_finishing_pass:
@@ -165,8 +166,17 @@ class RectangularPocket:
         bottom_corner_radial_stepover = radial_distance_to_corner / ceil(radial_distance_to_corner / tool_options.max_stepover)
 
         # Clear bottom-right corner
-        position[0] = pocket_clearing_centre[0] + final_clearing_radius
-        br_corner_commands.append(G0(x=position[0], y=position[1]))
+        br_corner_commands.extend(
+            rapid_with_z_hop(
+                position=position,
+                new_position=[
+                    pocket_clearing_centre[0] + final_clearing_radius,
+                    position[1],
+                    position[2]
+                ],
+                job_options=options.job
+            )[0]
+        )
 
         total_radial_cut_engagement = 0
         last_cartesian_cut_engagement = 0
@@ -193,9 +203,17 @@ class RectangularPocket:
             br_corner_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
             # Move to original cut start
             if not final_pass:
-                position[0] = pocket_clearing_centre[0] + final_clearing_radius
-                position[1] = pocket_clearing_centre[1] - total_cartesian_cut_engagement
-                br_corner_commands.append(G0(x=position[0], y=position[1]))
+                br_corner_commands.extend(
+                    rapid_with_z_hop(
+                        position=position,
+                        new_position=[
+                            pocket_clearing_centre[0] + final_clearing_radius,
+                            pocket_clearing_centre[1] - total_cartesian_cut_engagement,
+                            position[2]
+                        ],
+                        job_options=options.job
+                    )[0]
+                )
 
             last_cartesian_cut_engagement = total_cartesian_cut_engagement
 
@@ -261,9 +279,18 @@ class RectangularPocket:
         arcing_stepover = total_arc_distance / ceil(total_arc_distance / tool_options.max_stepover)
 
         # Move to start position
-        position[0] = pocket_clearing_centre[0] - final_clearing_radius
-        position[1] = pocket_clearing_centre[1]
-        operation_commands.append(G0(x=position[0], y=pocket_clearing_centre[1], comment='Move to arc start'))
+        operation_commands.extend(
+            rapid_with_z_hop(
+                position=position,
+                new_position=[
+                    pocket_clearing_centre[0] - final_clearing_radius,
+                    pocket_clearing_centre[1],
+                    position[2]
+                ],
+                job_options=options.job,
+                comment='Move to arc start'
+            )[0]
+        )
 
         total_radial_cut_engagement = 0
         last_cartesian_stepover = 0
@@ -283,9 +310,17 @@ class RectangularPocket:
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
 
             # Move to previous start position
-            position[0] = pocket_clearing_centre[0] - final_clearing_radius
-            position[1] = pocket_clearing_centre[1] + total_cartesian_stepover
-            operation_commands.append(G0(x=position[0], y=position[1]))
+            operation_commands.extend(
+                rapid_with_z_hop(
+                    position=position,
+                    new_position=[
+                        pocket_clearing_centre[0] - final_clearing_radius,
+                        pocket_clearing_centre[1] + total_cartesian_stepover,
+                        position[2]
+                    ],
+                    job_options=options.job
+                )[0]
+            )
 
             last_cartesian_stepover = total_cartesian_stepover
 
@@ -309,13 +344,26 @@ class RectangularPocket:
         radial_stepover = radial_distance_to_corner / ceil(radial_distance_to_corner / tool_options.max_stepover)
 
         # Move to start position
-        position[0] = pocket_clearing_centre[0] - final_clearing_radius
-        position[1] = pocket_clearing_centre[1] + sqrt(final_arcing_radius * final_arcing_radius - pocket_clearing_size[0] * pocket_clearing_size[0] / 4)
-        tl_corner_commands.append(G0(x=position[0], y=position[1], comment='Move to arc start'))
-        tr_corner_commands_and_positions.append([
+        tl_corner_commands.extend(
+            rapid_with_z_hop(
+                position=position,
+                new_position=[
+                    pocket_clearing_centre[0] - final_clearing_radius,
+                    pocket_clearing_centre[1] + sqrt(final_arcing_radius * final_arcing_radius - pocket_clearing_size[0] * pocket_clearing_size[0] / 4),
+                    position[2]
+                ],
+                job_options=options.job,
+                comment='Move to arc start'
+            )[0]
+        )
+
+        self._record_future_rapid(
+            tr_corner_commands_and_positions,
+            [*tr_corner_commands_and_positions[-1][0]],
             [pocket_clearing_centre[0], pocket_clearing_centre[1] + final_arcing_radius, position[2]],
-            lambda x, y, z: G0(x=x, y=y, comment='Move to arc start')
-        ])
+            options.job,
+            comment='Move to arc start'
+        )
 
         total_radial_cut_engagement = 0
         last_cartesian_stepin = sqrt(final_arcing_radius * final_arcing_radius - final_clearing_radius * final_clearing_radius)
@@ -351,20 +399,30 @@ class RectangularPocket:
             tl_corner_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
 
             tr_corner_commands_and_positions.append([
-                [tr_corner_commands_and_positions[-1][0][0], pocket_clearing_centre[1] + last_cartesian_stepin, position[2]],
+                [pocket_clearing_centre[0] + final_clearing_radius, pocket_clearing_centre[1] + last_cartesian_stepin, position[2]],
                 lambda x, y, z: G1(x=x, y=y, f=tool_options.feed_rate)
             ])
 
             if not isclose(total_radial_cut_engagement, radial_distance_to_corner, abs_tol=pow(10, -precision)):
                 # Move to previous start position
-                position[0] = pocket_clearing_centre[0] - final_clearing_radius
-                position[1] = pocket_clearing_centre[1] + total_cartesian_stepin
-                tl_corner_commands.append(G0(x=position[0], y=position[1]))
+                tl_corner_commands.extend(
+                    rapid_with_z_hop(
+                        position=position,
+                        new_position=[
+                            pocket_clearing_centre[0] - final_clearing_radius,
+                            pocket_clearing_centre[1] + total_cartesian_stepin,
+                            position[2]
+                        ],
+                        job_options=options.job
+                    )[0]
+                )
 
-                tr_corner_commands_and_positions.append([
+                self._record_future_rapid(
+                    tr_corner_commands_and_positions,
+                    [*tr_corner_commands_and_positions[-1][0]],
                     [pocket_clearing_centre[0] + total_cartesian_stepout, pocket_clearing_centre[1] + final_arcing_radius, position[2]],
-                    lambda x, y, z: G0(x=x, y=y)
-                ])
+                    options.job,
+                )
 
             last_cartesian_stepin = total_cartesian_stepin
             last_cartesian_stepout = total_cartesian_stepout
@@ -373,6 +431,16 @@ class RectangularPocket:
         for point, command in tr_corner_commands_and_positions:
             position[0:3] = point
             operation_commands.append(command(*point))
+
+    def _record_future_rapid(self, commands_and_positions, start_position, new_position, job_options, comment=None):
+        rapid_commands, rapid_positions = rapid_with_z_hop(
+            position=start_position,
+            new_position=[*new_position],
+            job_options=job_options,
+            comment=comment
+        )
+        for command, position in zip(rapid_commands, rapid_positions):
+            commands_and_positions.append([position, (lambda tmp_command: lambda x, y, z: tmp_command)(command)])
 
     def _create_finishing_pass(self, pocket_final_size, position, operation_commands, options):
         tool_options = options.tool

@@ -3,10 +3,10 @@ from dataclasses import dataclass
 
 @dataclass
 class Comment:
-    comment: str = ''
+    comment: str = None
 
     def format(self, output_options):
-        return ';' if self.comment == '' else f'; {self.comment}'
+        return ';' if self.comment is None else f'; {self.comment}'
 
     def transform(self, transformation):
         return self
@@ -16,7 +16,7 @@ class Comment:
 class M2(Comment):
 
     def format(self, output_options):
-        end = ';' if self.comment == '' else f'; {self.comment}'
+        end = ';' if self.comment is None else f'; {self.comment}'
         return f'M2{end}'
 
 
@@ -27,7 +27,7 @@ class M3(Comment):
     def format(self, output_options):
         speed_precision = output_options.speed_precision
         rpm = f' S{self.s:.{speed_precision}f}'
-        end = ';' if self.comment == '' else f'; {self.comment}'
+        end = ';' if self.comment is None else f'; {self.comment}'
         return f'M3{rpm}{end}'
 
 
@@ -35,7 +35,7 @@ class M3(Comment):
 class M5(Comment):
 
     def format(self, output_options):
-        end = ';' if self.comment == '' else f'; {self.comment}'
+        end = ';' if self.comment is None else f'; {self.comment}'
         return f'M5{end}'
 
 
@@ -50,7 +50,7 @@ class G0(Comment):
         x_pos = f' X{self.x:.{position_precision}f}' if self.x is not None else ''
         y_pos = f' Y{self.y:.{position_precision}f}' if self.y is not None else ''
         z_pos = f' Z{self.z:.{position_precision}f}' if self.z is not None else ''
-        end = ';' if self.comment == '' else f'; {self.comment}'
+        end = ';' if self.comment is None else f'; {self.comment}'
         return f'G0{x_pos}{y_pos}{z_pos}{end}'
 
     def transform(self, transformation):
@@ -73,7 +73,7 @@ class G1(G0):
         y_pos = f' Y{self.y:.{position_precision}f}' if self.y is not None else ''
         z_pos = f' Z{self.z:.{position_precision}f}' if self.z is not None else ''
         feed = f' F{self.f:.{feed_precision}f}'
-        end = ';' if self.comment == '' else f'; {self.comment}'
+        end = ';' if self.comment is None else f'; {self.comment}'
         return f'G1{x_pos}{y_pos}{z_pos}{feed}{end}'
 
 
@@ -93,7 +93,7 @@ class G2(G1):
         j_pos = f' J{self.j:.{position_precision}f}' if self.j is not None else ''
         k_pos = f' K{self.k:.{position_precision}f}' if self.k is not None else ''
         feed = f' F{self.f:.{feed_precision}f}'
-        end = ';' if self.comment == '' else f'; {self.comment}'
+        end = ';' if self.comment is None else f'; {self.comment}'
         return f'{command}{x_pos}{y_pos}{z_pos}{i_pos}{j_pos}{k_pos}{feed}{end}'
 
     def format(self, output_options):
