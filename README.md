@@ -7,6 +7,6 @@ A small project to allow for simple GCode operations to be generated without the
 - [ ] Milling surfaces
 - [X] milling rectangular pockets
 - [ ] Milling rectangular profiles
-- [ ] Milling circular profiles
+- [X] Milling circular profiles
 - [ ] Chamfering circular pockets
 - [ ] Chamfering rectangular pockets

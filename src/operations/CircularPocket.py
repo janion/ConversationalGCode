@@ -58,7 +58,7 @@ class CircularPocket:
 
         if final_path_radius <= tool_options.max_helix_stepover:
             # Helical interpolate to final depth as there is no need to spiral out to final diameter
-            helical_plunge((self._centre[0], self._centre[1]), initial_path_radius, total_plunge, position,
+            helical_plunge(self._centre[0], initial_path_radius, total_plunge, position,
                            commands, tool_options, precision)
         else:
             # Mill out material in depth steps
