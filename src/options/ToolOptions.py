@@ -15,16 +15,12 @@ class ToolOptions:
                  helix_feed_rate: float = None,
                  max_helix_angle: float = 3,
 
-                 corner_feed_rate: float = None,
-
                  finishing_pass: float = None,
                  finishing_feed_rate: float = None,
                  finishing_climb: bool = True
                  ):
         if helix_feed_rate is None:
             helix_feed_rate = feed_rate
-        if corner_feed_rate is None:
-            corner_feed_rate = feed_rate
         if finishing_pass is None:
             finishing_pass = 0
 
@@ -50,8 +46,6 @@ class ToolOptions:
             raise ValueError('Helical feed rate must be positive')
         elif max_helix_angle is None or max_helix_angle <= 0 or max_helix_angle >= 90:
             raise ValueError('Helical feed angle must be greater than 0 degrees and less than 90 degrees')
-        elif corner_feed_rate <= 0:
-            raise ValueError('Corner feed rate must be positive')
         elif finishing_pass < 0:
             raise ValueError('Finishing pass must be positive or None')
         elif finishing_pass > 0 and (finishing_feed_rate is None or finishing_feed_rate <= 0):
@@ -72,8 +66,6 @@ class ToolOptions:
         self._helix_feed_rate = helix_feed_rate
         self._max_helix_angle = max_helix_angle
 
-        self._corner_feed_rate = corner_feed_rate
-
         self._finishing_pass = finishing_pass
         self._finishing_feed_rate = finishing_feed_rate
         self._finishing_climb = finishing_climb
@@ -90,8 +82,6 @@ class ToolOptions:
     max_helix_stepover = property(fget=lambda self: self._max_helix_stepover)
     helix_feed_rate = property(fget=lambda self: self._helix_feed_rate)
     max_helix_angle = property(fget=lambda self: self._max_helix_angle)
-
-    corner_feed_rate = property(fget=lambda self: self._corner_feed_rate)
 
     finishing_pass = property(fget=lambda self: self._finishing_pass)
     finishing_feed_rate = property(fget=lambda self: self._finishing_feed_rate)

@@ -217,9 +217,11 @@ class RectangularPocket:
 
             last_cartesian_cut_engagement = total_cartesian_cut_engagement
 
-        br_corner_commands.append(Comment('Clear first corner'))
+        operation_commands.append(Comment('Clear first corner'))
         operation_commands.extend(br_corner_commands)
-        corner_commands = []
+        operation_commands.append(Comment('Clear second corner'))
+
+        corner_commands = [Comment('Clear first corner')]
         corner_commands.extend(br_corner_commands)
         corner_commands.append(Comment('Clear second corner'))
         rotation = Rotation(
