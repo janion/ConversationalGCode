@@ -1,5 +1,5 @@
 from math import pi, ceil, tan, pow, isclose
-from gcodes.GCodes import Comment, G0, G2
+from gcodes.GCodes import Comment, G0, G2, G3
 
 
 def rapid_with_z_hop(position, new_position, job_options, comment=None):
@@ -21,7 +21,7 @@ def rapid_with_z_hop(position, new_position, job_options, comment=None):
     return rapid_commands, rapid_positions
 
 
-def helical_plunge(centre, path_radius, plunge_depth, position, commands, tool_options, precision):
+def helical_plunge(centre, path_radius, plunge_depth, position, commands, tool_options, precision, is_inner=True):
     # Position tool at 3 o'clock from hole centre
     position[0] = centre[0] + path_radius
     position[1] = centre[1]
@@ -38,13 +38,18 @@ def helical_plunge(centre, path_radius, plunge_depth, position, commands, tool_o
 
     step_depth = position[2] - plunge_depth
 
+    if is_inner:
+        command = G2
+    else:
+        command = G3
+
     while not isclose(position[2], step_depth, abs_tol=pow(10, -precision)) and position[2] > step_depth:
         position[2] = position[2] - plunge_per_rev
         commands.append(
-            G2(x=position[0], y=position[1], z=position[2], i=-path_radius, f=tool_options.feed_rate))
+            command(x=position[0], y=position[1], z=position[2], i=-path_radius, f=tool_options.feed_rate))
     commands.append(
-        G2(x=position[0], y=position[1], z=position[2], i=-path_radius, f=tool_options.feed_rate,
-           comment='Final full pass at depth'))
+        command(x=position[0], y=position[1], z=position[2], i=-path_radius, f=tool_options.feed_rate,
+                comment='Final full pass at depth'))
 
 
 def spiral_out(current_radius, final_path_radius, position, commands, tool_options, precision):

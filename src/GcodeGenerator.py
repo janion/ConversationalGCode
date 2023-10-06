@@ -32,7 +32,7 @@ class GcodeGenerator:
     def generate(self, position=None):
         if position is None:
             position = [0, 0, 0]
-        # commands = CommandPrinter()
+        # commands = CommandPrinter(self._options.output)
         commands = []
 
         position[2] = self._options.job.clearance_height
