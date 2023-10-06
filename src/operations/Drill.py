@@ -27,11 +27,11 @@ class Drill:
         self._centres = centres
 
         if peck_interval is not None and peck_interval > 0:
-            self._command = lambda r, f, comment=None: G83(z=start_depth - depth, r=r, i=peck_interval, f=f, comment=comment)
+            self._command = lambda x, y, r, f, comment=None: G83(x=x, y=y, z=start_depth - depth, r=r, i=peck_interval, f=f, comment=comment)
         elif dwell is not None and dwell > 0:
-            self._command = lambda r, f, comment=None: G82(z=start_depth - depth, r=r, p=dwell, f=f, comment=comment)
+            self._command = lambda x, y, r, f, comment=None: G82(x=x, y=y, z=start_depth - depth, r=r, p=dwell, f=f, comment=comment)
         else:
-            self._command = lambda r, f, comment=None: G81(z=start_depth - depth, r=r, f=f, comment=comment)
+            self._command = lambda x, y, r, f, comment=None: G81(x=x, y=y, z=start_depth - depth, r=r, f=f, comment=comment)
 
     def generate(self, position, commands, options):
         # Setup
@@ -41,8 +41,7 @@ class Drill:
         # Position tool
         position[0] = self._centres[0][0]
         position[1] = self._centres[0][1]
-        commands.append(G0(x=position[0], y=position[1], comment='Move to starting position'))
-        commands.append(self._command(r=job_options.lead_in, f=tool_options.feed_rate, comment='Start drilling cycle'))
+        commands.append(self._command(x=position[0], y=position[1], r=job_options.lead_in, f=tool_options.feed_rate, comment='Start drilling cycle'))
 
         for centre in self._centres[1:]:
             position[0] = centre[0]

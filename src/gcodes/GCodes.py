@@ -126,19 +126,19 @@ class G80(Comment):
 
 
 @dataclass
-class G81(Comment):
-    z: float = None  # mm
+class G81(G1):
     r: float = None  # mm
-    f: float = None  # mm per min
 
     def format(self, output_options):
         position_precision = output_options.position_precision
         feed_precision = output_options.feed_precision
+        x_pos = f' X{self.x:.{position_precision}f}'
+        y_pos = f' Y{self.y:.{position_precision}f}'
         z_pos = f' Z{self.z:.{position_precision}f}'
         r = f' R{self.r:.{position_precision}f}'
         feed = f' F{self.f:.{feed_precision}f}'
         end = ';' if self.comment is None else f'; {self.comment}'
-        return f'G81{z_pos}{r}{feed}{end}'
+        return f'G81{x_pos}{y_pos}{z_pos}{r}{feed}{end}'
 
 
 @dataclass
@@ -148,12 +148,14 @@ class G82(G81):
     def format(self, output_options):
         position_precision = output_options.position_precision
         feed_precision = output_options.feed_precision
+        x_pos = f' X{self.x:.{position_precision}f}'
+        y_pos = f' Y{self.y:.{position_precision}f}'
         z_pos = f' Z{self.z:.{position_precision}f}'
         r = f' R{self.r:.{position_precision}f}'
         p = f' P{self.p:.{position_precision}f}'
         feed = f' F{self.f:.{feed_precision}f}'
         end = ';' if self.comment is None else f'; {self.comment}'
-        return f'G82{z_pos}{r}{p}{feed}{end}'
+        return f'G82{x_pos}{y_pos}{z_pos}{r}{p}{feed}{end}'
 
 
 @dataclass
@@ -163,18 +165,18 @@ class G83(G81):
     def format(self, output_options):
         position_precision = output_options.position_precision
         feed_precision = output_options.feed_precision
+        x_pos = f' X{self.x:.{position_precision}f}'
+        y_pos = f' Y{self.y:.{position_precision}f}'
         z_pos = f' Z{self.z:.{position_precision}f}'
         r = f' R{self.r:.{position_precision}f}'
         i = f' I{self.i:.{position_precision}f}'
         feed = f' F{self.f:.{feed_precision}f}'
         end = ';' if self.comment is None else f'; {self.comment}'
-        return f'G82{z_pos}{r}{i}{feed}{end}'
+        return f'G82{x_pos}{y_pos}{z_pos}{r}{i}{feed}{end}'
 
 
 @dataclass
-class CyclePosition(Comment):
-    x: float = None  # mm
-    y: float = None  # mm
+class CyclePosition(G0):
 
     def format(self, output_options):
         position_precision = output_options.position_precision
