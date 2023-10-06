@@ -1,6 +1,7 @@
 from src.GcodeGenerator import GcodeGenerator
 from operations.CircularPocket import CircularPocket
 from operations.CircularProfile import CircularProfile
+from operations.Drill import Drill
 from operations.RectangularPocket import RectangularPocket
 from operations.RectangularProfile import RectangularProfile
 from options.Options import Options, ToolOptions, OutputOptions, JobOptions
@@ -43,7 +44,11 @@ if __name__ == '__main__':
     # gcode_generator.add_operation(RectangularPocket(centre=[0, 0], width=70, length=40, depth=2, finishing_pass=True))
     # gcode_generator.add_operation(RectangularPocket(centre=[10, 10], width=32, length=22, depth=2, finishing_pass=True))
 
-    gcode_generator.add_operation(RectangularProfile(centre=[10, 10], width=32, length=22, depth=2, is_inner=False))
+    # gcode_generator.add_operation(RectangularProfile(centre=[10, 10], width=32, length=22, depth=2, is_inner=False))
+
+    gcode_generator.add_operation(Drill(centres=[[10, 10], [-10, 10]], depth=2, peck_interval=3))
+    gcode_generator.add_operation(Drill(centres=[[-10, -10], [-10, -5]], depth=2, dwell=3))
+    gcode_generator.add_operation(Drill(centres=[[10, -5], [5, -5]], depth=2))
 
     position = [0, 0, 0]
     commands = gcode_generator.generate(position=position)

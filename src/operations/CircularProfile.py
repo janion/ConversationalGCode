@@ -10,16 +10,17 @@ class CircularProfile:
                  diameter: float,
                  depth: float,
                  is_inner: bool):
-        if diameter is None or diameter <= 0:
-            raise ValueError('Profile diameter must be positive and non-zero')
-        elif depth is None or depth <= 0:
-            raise ValueError('Profile depth must be positive and non-zero')
-        elif centre is None:
+        if centre is None:
             raise ValueError('Profile centre coordinates must be specified')
         elif start_depth is None:
             raise ValueError('Profile start depth must be specified')
+        elif diameter is None or diameter <= 0:
+            raise ValueError('Profile diameter must be positive and non-zero')
+        elif depth is None or depth <= 0:
+            raise ValueError('Profile depth must be positive and non-zero')
         elif is_inner is None:
             raise ValueError('Profile must be specified as either inner or outer (True = inner, False = outer)')
+
         self._centre = centre
         self._start_depth = start_depth
         self._diameter = diameter

@@ -3,7 +3,7 @@ A small project to allow for simple GCode operations to be generated without the
 
 ## Operations to Support:
 - [X] Milling circular pockets
-- [ ] Drilling holes
+- [X] Drilling holes
 - [ ] Milling surfaces
 - [X] milling rectangular pockets
 - [X] Milling rectangular profiles

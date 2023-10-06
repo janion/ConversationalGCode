@@ -47,8 +47,8 @@ class GcodeGenerator:
 
             position[2] = self._options.job.clearance_height
             commands.append(G0(z=position[2], comment='Clear tool'))
+            commands.append(Comment())
 
-        commands.append(Comment())
         commands.append(M5(comment='Stop spindle'))
         commands.append(M2(comment='End program'))
 

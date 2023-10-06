@@ -116,3 +116,70 @@ class G3(G2):
 
     def format(self, output_options):
         return self._format_arc('G3', output_options)
+
+
+class G80(Comment):
+
+    def format(self, output_options):
+        end = ';' if self.comment is None else f'; {self.comment}'
+        return f'G80{end}'
+
+
+@dataclass
+class G81(Comment):
+    z: float = None  # mm
+    r: float = None  # mm
+    f: float = None  # mm per min
+
+    def format(self, output_options):
+        position_precision = output_options.position_precision
+        feed_precision = output_options.feed_precision
+        z_pos = f' Z{self.z:.{position_precision}f}'
+        r = f' R{self.r:.{position_precision}f}'
+        feed = f' F{self.f:.{feed_precision}f}'
+        end = ';' if self.comment is None else f'; {self.comment}'
+        return f'G81{z_pos}{r}{feed}{end}'
+
+
+@dataclass
+class G82(G81):
+    p: float = 0  # ms
+
+    def format(self, output_options):
+        position_precision = output_options.position_precision
+        feed_precision = output_options.feed_precision
+        z_pos = f' Z{self.z:.{position_precision}f}'
+        r = f' R{self.r:.{position_precision}f}'
+        p = f' P{self.p:.{position_precision}f}'
+        feed = f' F{self.f:.{feed_precision}f}'
+        end = ';' if self.comment is None else f'; {self.comment}'
+        return f'G82{z_pos}{r}{p}{feed}{end}'
+
+
+@dataclass
+class G83(G81):
+    i: float = None  # mm
+
+    def format(self, output_options):
+        position_precision = output_options.position_precision
+        feed_precision = output_options.feed_precision
+        z_pos = f' Z{self.z:.{position_precision}f}'
+        r = f' R{self.r:.{position_precision}f}'
+        i = f' I{self.i:.{position_precision}f}'
+        feed = f' F{self.f:.{feed_precision}f}'
+        end = ';' if self.comment is None else f'; {self.comment}'
+        return f'G82{z_pos}{r}{i}{feed}{end}'
+
+
+@dataclass
+class CyclePosition(Comment):
+    x: float = None  # mm
+    y: float = None  # mm
+
+    def format(self, output_options):
+        position_precision = output_options.position_precision
+        x_pos = f'X{self.x:.{position_precision}f}' if self.x is not None else ''
+        spacer = ' ' if x_pos != '' else ''
+        y_pos = f'Y{self.y:.{position_precision}f}' if self.y is not None else ''
+        end = ';' if self.comment is None else f'; {self.comment}'
+        return f'{x_pos}{spacer}{y_pos}{end}'

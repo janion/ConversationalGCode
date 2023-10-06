@@ -12,14 +12,15 @@ class CircularPocket:
                  diameter: float,
                  depth: float,
                  finishing_pass: bool = False):
-        if diameter is None or diameter <= 0:
-            raise ValueError('Pocket diameter must be positive and non-zero')
-        elif depth is None or depth <= 0:
-            raise ValueError('Pocket depth must be positive and non-zero')
-        elif centre is None:
+        if centre is None:
             raise ValueError('Pocket centre coordinates must be specified')
         elif start_depth is None:
             raise ValueError('Pocket start depth must be specified')
+        elif diameter is None or diameter <= 0:
+            raise ValueError('Pocket diameter must be positive and non-zero')
+        elif depth is None or depth <= 0:
+            raise ValueError('Pocket depth must be positive and non-zero')
+
         self._centre = centre
         self._start_depth = start_depth
         self._diameter = diameter
