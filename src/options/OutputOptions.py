@@ -2,11 +2,11 @@
 class OutputOptions:
 
     def __init__(self, position_precision: int = 3, feed_precision: int = 2, speed_precision: int = 1):
-        if position_precision < 0:
+        if position_precision is None or position_precision < 0:
             raise ValueError('Position precision must be zero or greater')
-        elif feed_precision < 0:
+        elif feed_precision is None or feed_precision < 0:
             raise ValueError('Feed precision must be zero or greater')
-        elif speed_precision < 0:
+        elif speed_precision is None or speed_precision < 0:
             raise ValueError('Speed precision must be zero or greater')
 
         self._position_precision = position_precision
