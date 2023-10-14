@@ -58,7 +58,7 @@ class ToolOptions:
             results.append(ValidationResult(False, 'Helical tool step-over must be positive'))
         if self._max_helix_stepover > self._tool_diameter / 2:
             results.append(ValidationResult(False, 'Helical tool step-over cannot be more than the tool radius'))
-        if self._helix_feed_rate is None or self._helix_feed_rate <= 0:
+        if self._helix_feed_rate is not None and self._helix_feed_rate <= 0:
             results.append(ValidationResult(False, 'Helical feed rate must be positive'))
         if self._max_helix_angle is None or self._max_helix_angle <= 0 or self._max_helix_angle >= 90:
             results.append(ValidationResult(False, 'Helical feed angle must be greater than 0 degrees and less than 90 degrees'))

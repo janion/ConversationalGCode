@@ -23,7 +23,7 @@ class Options:
         results.extend(self._job.validate())
         results.extend(self._tool.validate())
 
-        filter(lambda result: result.success, results)
+        results = list(filter(lambda result: not result.success, results))
 
         if len(results) == 0:
             results.append(ValidationResult())

@@ -35,7 +35,7 @@ class Drill:
         if len(results) == 0:
             results.append(ValidationResult())
 
-        return 
+        return results
 
     def _set_centres(self, value):
         self._centres = value

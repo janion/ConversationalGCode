@@ -33,9 +33,10 @@ class GcodeGenerator:
     def _validate(self):
         results = []
         results.extend(self._options.validate())
-        results.extend([op.validate(self._options) for op in self._operations])
+        for op in self._operations:
+            results.extend(op.validate(self._options))
 
-        filter(lambda result: result.success, results)
+        results = list(filter(lambda result: not result.success, results))
 
         if len(results) == 0:
             results.append(ValidationResult())
@@ -44,6 +45,8 @@ class GcodeGenerator:
 
     def generate(self, position=None):
         results = self._validate()
+
+        print([type(result) for result in results])
 
         if len(results) > 1 or not results[0].success:
             return [result.message for result in results]
