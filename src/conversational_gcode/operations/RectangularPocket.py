@@ -130,6 +130,11 @@ class RectangularPocket:
             pocket_clearing_size[0] -= 2 * tool_options.finishing_pass
             pocket_clearing_size[1] -= 2 * tool_options.finishing_pass
 
+        if self._centre is not None:
+            centre = self._centre
+        else:
+            centre = [self._corner[0] + self._width / 2, self._corner[1] + self._length / 2]
+
         rotated = False
         if self._width > self._length:
             pocket_clearing_size.reverse()
@@ -137,7 +142,7 @@ class RectangularPocket:
             position[0] = -position[1]
             position[1] = position[0]
             rotated = True
-        pocket_clearing_centre = [self._centre[0], self._centre[1] + (pocket_clearing_size[0] - pocket_clearing_size[1]) / 2]
+        pocket_clearing_centre = [centre[0], centre[1] + (pocket_clearing_size[0] - pocket_clearing_size[1]) / 2]
 
         final_clearing_radius = pocket_clearing_size[0] / 2
         initial_clearing_radius = min(final_clearing_radius, tool_options.max_helix_stepover)
@@ -178,14 +183,14 @@ class RectangularPocket:
 
             if not isclose(deepest_cut_depth, final_depth, abs_tol=pow(10, -precision)):
                 # Clear wall
-                self._clear_wall(position, operation_commands, job_options)
+                self._clear_wall(centre, position, operation_commands, job_options)
 
         # Finishing pass
         if has_finishing_pass:
-            self._create_finishing_pass(pocket_final_size, position, operation_commands, options)
+            self._create_finishing_pass(centre, pocket_final_size, position, operation_commands, options)
 
         # Clear wall
-        self._clear_wall(position, operation_commands, job_options)
+        self._clear_wall(centre, position, operation_commands, job_options)
 
         if rotated:
             position[0] = position[1]
@@ -194,8 +199,8 @@ class RectangularPocket:
                 command.transform(
                     Rotation(
                         [
-                            lambda x, y, z: (y + self._centre[0] - self._centre[1]) if y is not None else None,
-                            lambda x, y, z: (self._centre[0] + self._centre[1] - x) if x is not None else None,
+                            lambda x, y, z: (y + centre[0] - centre[1]) if y is not None else None,
+                            lambda x, y, z: (centre[0] + centre[1] - x) if x is not None else None,
                             lambda x, y, z: z if z is not None else None
                         ],
                         [
@@ -505,41 +510,41 @@ class RectangularPocket:
         for command, position in zip(rapid_commands, rapid_positions):
             commands_and_positions.append([position, (lambda tmp_command: lambda x, y, z: tmp_command)(command)])
 
-    def _create_finishing_pass(self, pocket_final_size, position, operation_commands, options):
+    def _create_finishing_pass(self, centre, pocket_final_size, position, operation_commands, options):
         tool_options = options.tool
 
         operation_commands.append(Comment(f'{tool_options.finishing_pass}mm finishing pass'))
 
         # Feed into cut
-        position[0] = self._centre[0] + pocket_final_size[0] / 2
+        position[0] = centre[0] + pocket_final_size[0] / 2
         operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
 
         initial_y_position = position[1]
         if tool_options.finishing_climb:
-            position[1] = self._centre[1] + pocket_final_size[1] / 2
+            position[1] = centre[1] + pocket_final_size[1] / 2
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[0] = self._centre[0] - pocket_final_size[0] / 2
+            position[0] = centre[0] - pocket_final_size[0] / 2
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[1] = self._centre[1] - pocket_final_size[1] / 2
+            position[1] = centre[1] - pocket_final_size[1] / 2
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[0] = self._centre[0] + pocket_final_size[0] / 2
+            position[0] = centre[0] + pocket_final_size[0] / 2
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
             position[1] = initial_y_position
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
         else:
-            position[1] = self._centre[1] - pocket_final_size[1] / 2
+            position[1] = centre[1] - pocket_final_size[1] / 2
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[0] = self._centre[0] - pocket_final_size[0] / 2
+            position[0] = centre[0] - pocket_final_size[0] / 2
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[1] = self._centre[1] + pocket_final_size[1] / 2
+            position[1] = centre[1] + pocket_final_size[1] / 2
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[0] = self._centre[0] + pocket_final_size[0] / 2
+            position[0] = centre[0] + pocket_final_size[0] / 2
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
             position[1] = initial_y_position
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
 
-    def _clear_wall(self, position, operation_commands, job_options):
-        position[0] = max(self._centre[0], position[0] - 1)
-        position[1] = max(self._centre[1], position[1] - 1)
+    def _clear_wall(self, centre, position, operation_commands, job_options):
+        position[0] = max(centre[0], position[0] - 1)
+        position[1] = max(centre[1], position[1] - 1)
         position[2] += job_options.lead_in
         operation_commands.append(G0(x=position[0], y=position[1], z=position[2], comment='Clear wall'))

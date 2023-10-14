@@ -122,9 +122,14 @@ class RectangularProfile:
         max_plunge_per_step = min(tool_options.max_stepdown, plunge_per_step_using_angle)
         step_plunge = total_plunge / ceil(total_plunge / max_plunge_per_step)
 
+        if self._centre is not None:
+            centre = self._centre
+        else:
+            centre = [self._corner[0] + self._width / 2, self._corner[1] + self._length / 2]
+
         # Position tool
-        position[0] = self._centre[0] + pocket_final_size[0] / 2
-        position[1] = self._centre[1] + pocket_final_size[1] / 2
+        position[0] = centre[0] + pocket_final_size[0] / 2
+        position[1] = centre[1] + pocket_final_size[1] / 2
         commands.append(G0(x=position[0], y=position[1], comment='Move to starting position'))
         position[2] = self._start_depth + job_options.lead_in
         commands.append(G0(z=position[2], comment='Move to start depth'))
