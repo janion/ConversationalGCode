@@ -1,6 +1,7 @@
 from math import ceil, pow, isclose, sqrt
 from copy import deepcopy
 
+from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import rapid_with_z_hop, helical_plunge, spiral_out
 from conversational_gcode.gcodes.GCodes import Comment, G0, G1, G2
 from conversational_gcode.transform.Rotation import Rotation
@@ -9,37 +10,107 @@ from conversational_gcode.transform.Rotation import Rotation
 class RectangularPocket:
 
     def __init__(self,
-                 width: float,
-                 length: float,
-                 depth: float,
+                 width: float = 10,
+                 length: float = 10,
+                 depth: float = 3,
                  centre: list = None,
                  corner: list = None,
                  start_depth: float = 0,
                  finishing_pass: bool = False):
-        if width is None or width <= 0:
-            raise ValueError('Pocket width must be positive and non-zero')
-        elif length is None or length <= 0:
-            raise ValueError('Pocket length must be positive and non-zero')
-        elif depth is None or depth <= 0:
-            raise ValueError('Pocket depth must be positive and non-zero')
-        elif centre is None and corner is None:
-            raise ValueError('Pocket corner or centre coordinates must be specified')
-        elif centre is not None and corner is not None:
-            raise ValueError('Pocket corner or centre coordinates must be specified, not both')
-        elif start_depth is None:
-            raise ValueError('Pocket start depth must be specified')
-
         self._width = width
         self._length = length
         self._depth = depth
-        
+
         if centre is not None:
             self._centre = centre
-        else:
-            self._centre = [corner[0] + width / 2, corner[1] + length / 2]
+        if corner is not None:
+            self._corner = corner
+        if centre is None and corner is None:
+            self._centre = [0, 0]
         
         self._start_depth = start_depth
-        self._finishing_pass = finishing_pass is not None and finishing_pass
+        self._finishing_pass = finishing_pass
+
+    def validate(self, options):
+        results = []
+        if self._width is None or self._width <= 0:
+            results.append(ValidationResult(False, 'Pocket width must be positive and non-zero'))
+        if self._length is None or self._length <= 0:
+            results.append(ValidationResult(False, 'Pocket length must be positive and non-zero'))
+        if self._depth is None or self._depth <= 0:
+            results.append(ValidationResult(False, 'Pocket depth must be positive and non-zero'))
+        if self._centre is None and self._corner is None:
+            results.append(ValidationResult(False, 'Pocket corner or centre coordinates must be specified'))
+        if self._centre is not None and self._corner is not None:
+            results.append(ValidationResult(False, 'Pocket corner or centre coordinates must be specified, not both'))
+        if self._start_depth is None:
+            results.append(ValidationResult(False, 'Pocket start depth must be specified'))
+
+        if options is not None:
+            has_finishing_pass = self._finishing_pass and options.tool.finishing_pass > 0
+            pocket_clearing_size = [self._width - options.tool.tool_diameter, self._length - options.tool.tool_diameter]
+
+            if self._width is None or self._length is None or self._depth is None:
+                results.append(ValidationResult(False, 'Rectangular pocket must have width, length and depth defined.'))
+            if self._width <= options.tool.tool_diameter or self._length <= options.tool.tool_diameter:
+                results.append(ValidationResult(False, f'Pocket size [{self._width}, {self._length}]mm must be greater than tool diameter {options.tool.tool_diameter}mm'))
+            if has_finishing_pass and pocket_clearing_size[0] <= 0:
+                results.append(ValidationResult(False, f'Pocket size [{self._width}, {self._length}]mm must be greater than tool diameter {options.tool.tool_diameter}mm and give room for a finishing pass of {options.tool.finishing_pass}mm'))
+
+        if len(results) == 0:
+            results.append(ValidationResult())
+
+        return results
+
+    def _set_width(self, value):
+        self._width = value
+
+    def _set_length(self, value):
+        self._length = value
+
+    def _set_depth(self, value):
+        self._depth = value
+
+    def _set_centre(self, value):
+        self._centre = value
+
+    def _set_corner(self, value):
+        self._corner = value
+
+    def _set_start_depth(self, value):
+        self._start_depth = value
+
+    def _set_finishing_pass(self, value):
+        self._finishing_pass = value
+
+    width = property(
+        fget=lambda self: self._width,
+        fset=_set_width
+    )
+    length = property(
+        fget=lambda self: self._length,
+        fset=_set_length
+    )
+    depth = property(
+        fget=lambda self: self._depth,
+        fset=_set_depth
+    )
+    centre = property(
+        fget=lambda self: self._centre,
+        fset=_set_centre
+    )
+    corner = property(
+        fget=lambda self: self._corner,
+        fset=_set_corner
+    )
+    start_depth = property(
+        fget=lambda self: self._start_depth,
+        fset=_set_start_depth
+    )
+    finishing_pass = property(
+        fget=lambda self: self._finishing_pass,
+        fset=_set_finishing_pass
+    )
 
     def generate(self, position, commands, options):
         #########
@@ -52,9 +123,6 @@ class RectangularPocket:
         job_options = options.job
 
         has_finishing_pass = self._finishing_pass and tool_options.finishing_pass > 0
-
-        if self._width is None or self._length is None or self._depth is None:
-            raise ValueError('Rectangular pocket must have width, length and depth defined.')
 
         pocket_clearing_size = [self._width - tool_options.tool_diameter, self._length - tool_options.tool_diameter]
         pocket_final_size = [self._width - tool_options.tool_diameter, self._length - tool_options.tool_diameter]
@@ -70,13 +138,6 @@ class RectangularPocket:
             position[1] = position[0]
             rotated = True
         pocket_clearing_centre = [self._centre[0], self._centre[1] + (pocket_clearing_size[0] - pocket_clearing_size[1]) / 2]
-
-        if self._width <= tool_options.tool_diameter or self._length <= tool_options.tool_diameter:
-            raise ValueError(
-                f'Pocket size [{self._width}, {self._length}]mm must be greater than tool diameter {tool_options.tool_diameter}mm')
-        elif has_finishing_pass and pocket_clearing_size[0] <= 0:
-            raise ValueError(
-                f'Pocket size [{self._width}, {self._length}]mm must be greater than tool diameter {tool_options.tool_diameter}mm and give room for a finishing pass of {tool_options.finishing_pass}mm')
 
         final_clearing_radius = pocket_clearing_size[0] / 2
         initial_clearing_radius = min(final_clearing_radius, tool_options.max_helix_stepover)

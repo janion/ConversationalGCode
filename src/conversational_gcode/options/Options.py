@@ -1,6 +1,7 @@
 from conversational_gcode.options.ToolOptions import ToolOptions
 from conversational_gcode.options.JobOptions import JobOptions
 from conversational_gcode.options.OutputOptions import OutputOptions
+from conversational_gcode.validate.validation_result import ValidationResult
 
 class Options:
 
@@ -15,6 +16,19 @@ class Options:
         self._tool = tool
         self._job = job
         self._output = output
+
+    def validate(self):
+        results = []
+        results.extend(self._output.validate())
+        results.extend(self._job.validate())
+        results.extend(self._tool.validate())
+
+        filter(lambda result: result.success, results)
+
+        if len(results) == 0:
+            results.append(ValidationResult())
+
+        return results
 
     tool = property(fget=lambda self: self._tool)
     job = property(fget=lambda self: self._job)

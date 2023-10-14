@@ -1,5 +1,6 @@
 from math import ceil, pow, isclose
 
+from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import helical_plunge, spiral_out
 from conversational_gcode.gcodes.GCodes import Comment, G0, G2, G3
 
@@ -7,25 +8,77 @@ from conversational_gcode.gcodes.GCodes import Comment, G0, G2, G3
 class CircularPocket:
 
     def __init__(self,
-                 centre: list,
-                 start_depth: float,
-                 diameter: float,
-                 depth: float,
+                 centre: list = None,
+                 start_depth: float = 0,
+                 diameter: float = 10,
+                 depth: float = 10,
                  finishing_pass: bool = False):
-        if centre is None:
-            raise ValueError('Pocket centre coordinates must be specified')
-        elif start_depth is None:
-            raise ValueError('Pocket start depth must be specified')
-        elif diameter is None or diameter <= 0:
-            raise ValueError('Pocket diameter must be positive and non-zero')
-        elif depth is None or depth <= 0:
-            raise ValueError('Pocket depth must be positive and non-zero')
-
-        self._centre = centre
+        self._centre = [0, 0] if centre is None else centre
         self._start_depth = start_depth
         self._diameter = diameter
         self._depth = depth
-        self._finishing_pass = finishing_pass is not None and finishing_pass
+        self._finishing_pass = finishing_pass
+
+    def validate(self, options = None):
+        results = []
+        if self._centre is None:
+            results.append(ValidationResult(False, 'Pocket centre coordinates must be specified'))
+        if self._start_depth is None:
+            results.append(ValidationResult(False, 'Pocket start depth must be specified'))
+        if self._diameter is None or self._diameter <= 0:
+            results.append(ValidationResult(False, 'Pocket diameter must be positive and non-zero'))
+        if self._depth is None or self._depth <= 0:
+            results.append(ValidationResult(False, 'Pocket depth must be positive and non-zero'))
+
+        if options is not None:
+            if self._diameter <= options.tool.tool_diameter:
+                results.append(ValidationResult(False, f'Hole diameter {self._diameter}mm must be greater than tool diameter {options.tool.tool_diameter}mm'))
+
+            roughing_diameter = self._diameter
+            has_finishing_pass = self._finishing_pass and options.tool.finishing_pass > 0
+            if has_finishing_pass and roughing_diameter <= options.tool.tool_diameter:
+                results.append(ValidationResult(False, f'Hole diameter {self._diameter}mm must be greater than tool diameter {options.tool.tool_diameter}mm and give room for a finishing pass of {options.tool.finishing_pass}mm'))
+
+        if len(results) == 0:
+            results.append(ValidationResult())
+
+        return results
+
+    def _set_centre(self, value):
+        self._centre = value
+
+    def _set_start_depth(self, value):
+        self._start_depth = value
+
+    def _set_diameter(self, value):
+        self._diameter = value
+
+    def _set_depth(self, value):
+        self._depth = value
+
+    def _set_finishing_pass(self, value):
+        self._finishing_pass = value
+
+    centre = property(
+        fget=lambda self: self._centre,
+        fset=_set_centre
+    )
+    start_depth = property(
+        fget=lambda self: self._start_depth,
+        fset=_set_start_depth
+    )
+    diameter = property(
+        fget=lambda self: self._diameter,
+        fset=_set_diameter
+    )
+    depth = property(
+        fget=lambda self: self._depth,
+        fset=_set_depth
+    )
+    finishing_pass = property(
+        fget=lambda self: self._finishing_pass is not None and self._finishing_pass,
+        fset=_set_finishing_pass
+    )
 
     def generate(self, position, commands, options):
         #########
@@ -40,13 +93,6 @@ class CircularPocket:
 
         if has_finishing_pass:
             roughing_diameter -= 2 * tool_options.finishing_pass
-
-        if self._diameter <= tool_options.tool_diameter:
-            raise ValueError(
-                f'Hole diameter {self._diameter}mm must be greater than tool diameter {tool_options.tool_diameter}mm')
-        elif has_finishing_pass and roughing_diameter <= tool_options.tool_diameter:
-            raise ValueError(
-                f'Hole diameter {self._diameter}mm must be greater than tool diameter {tool_options.tool_diameter}mm and give room for a finishing pass of {tool_options.finishing_pass}mm')
 
         final_path_radius = (roughing_diameter - tool_options.tool_diameter) / 2
         initial_path_radius = min(final_path_radius, tool_options.max_helix_stepover)
