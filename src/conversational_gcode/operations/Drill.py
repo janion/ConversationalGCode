@@ -1,5 +1,4 @@
-from operations.Operations import helical_plunge
-from gcodes.GCodes import Comment, G0, G80, G81, G82, G83, CyclePosition
+from conversational_gcode.gcodes.GCodes import Comment, G80, G81, G82, G83, CyclePosition
 
 
 class Drill:

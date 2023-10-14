@@ -1,5 +1,5 @@
-from operations.Operations import helical_plunge
-from gcodes.GCodes import Comment, G0
+from conversational_gcode.operations.Operations import helical_plunge
+from conversational_gcode.gcodes.GCodes import Comment, G0
 
 
 class CircularProfile:

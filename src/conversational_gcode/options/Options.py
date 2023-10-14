@@ -1,6 +1,6 @@
-from options.ToolOptions import ToolOptions
-from options.JobOptions import JobOptions
-from options.OutputOptions import OutputOptions
+from conversational_gcode.options.ToolOptions import ToolOptions
+from conversational_gcode.options.JobOptions import JobOptions
+from conversational_gcode.options.OutputOptions import OutputOptions
 
 class Options:
 

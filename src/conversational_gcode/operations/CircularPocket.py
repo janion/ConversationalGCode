@@ -1,7 +1,7 @@
 from math import ceil, pow, isclose
 
-from operations.Operations import helical_plunge, spiral_out
-from gcodes.GCodes import Comment, G0, G2, G3
+from conversational_gcode.operations.Operations import helical_plunge, spiral_out
+from conversational_gcode.gcodes.GCodes import Comment, G0, G2, G3
 
 
 class CircularPocket:

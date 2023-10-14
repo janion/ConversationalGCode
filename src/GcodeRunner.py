@@ -1,10 +1,9 @@
-from src.GcodeGenerator import GcodeGenerator
-from operations.CircularPocket import CircularPocket
-from operations.CircularProfile import CircularProfile
-from operations.Drill import Drill
-from operations.RectangularPocket import RectangularPocket
-from operations.RectangularProfile import RectangularProfile
-from options.Options import Options, ToolOptions, OutputOptions, JobOptions
+from conversational_gcode.GcodeGenerator import GcodeGenerator
+from conversational_gcode.operations.Drill import Drill
+from conversational_gcode.options.Options import Options
+from conversational_gcode.options.ToolOptions import ToolOptions
+from conversational_gcode.options.OutputOptions import OutputOptions
+from conversational_gcode.options.JobOptions import JobOptions
 
 if __name__ == '__main__':
     tool_options = ToolOptions(

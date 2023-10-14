@@ -1,6 +1,6 @@
 from math import ceil, tan, pi, isclose, pow
 
-from gcodes.GCodes import Comment, G0, G1
+from conversational_gcode.gcodes.GCodes import Comment, G0, G1
 
 
 class RectangularProfile:

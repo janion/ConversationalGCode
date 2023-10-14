@@ -1,9 +1,9 @@
 from math import ceil, pow, isclose, sqrt
 from copy import deepcopy
 
-from operations.Operations import rapid_with_z_hop, helical_plunge, spiral_out
-from gcodes.GCodes import Comment, G0, G1, G2
-from transform.Rotation import Rotation
+from conversational_gcode.operations.Operations import rapid_with_z_hop, helical_plunge, spiral_out
+from conversational_gcode.gcodes.GCodes import Comment, G0, G1, G2
+from conversational_gcode.transform.Rotation import Rotation
 
 
 class RectangularPocket:

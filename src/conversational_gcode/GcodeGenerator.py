@@ -1,4 +1,4 @@
-from gcodes.GCodes import Comment, M2, M3, M5, G0
+from conversational_gcode.gcodes.GCodes import Comment, M2, M3, M5, G0
 
 
 class CommandPrinter:

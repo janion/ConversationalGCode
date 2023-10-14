@@ -1,5 +1,5 @@
 from math import pi, ceil, tan, pow, isclose
-from gcodes.GCodes import Comment, G0, G2, G3
+from conversational_gcode.gcodes.GCodes import Comment, G0, G2, G3
 
 
 def rapid_with_z_hop(position, new_position, job_options, comment=None):
