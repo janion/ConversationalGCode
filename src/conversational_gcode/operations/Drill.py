@@ -16,7 +16,7 @@ class Drill:
         self._peck_interval = peck_interval
         self._dwell = dwell
 
-    def validate(self, options = None):
+    def validate(self, options=None):
         results = []
         if self._centres is None or self._centres == []:
             results.append(ValidationResult(False, 'Drill centre coordinates must be specified'))

@@ -46,8 +46,6 @@ class GcodeGenerator:
     def generate(self, position=None):
         results = self._validate()
 
-        print([type(result) for result in results])
-
         if len(results) > 1 or not results[0].success:
             return [result.message for result in results]
 

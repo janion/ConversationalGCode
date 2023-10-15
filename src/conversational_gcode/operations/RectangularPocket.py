@@ -31,7 +31,7 @@ class RectangularPocket:
         self._start_depth = start_depth
         self._finishing_pass = finishing_pass
 
-    def validate(self, options):
+    def validate(self, options=None):
         results = []
         if self._width is None or self._width <= 0:
             results.append(ValidationResult(False, 'Pocket width must be positive and non-zero'))

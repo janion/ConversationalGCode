@@ -17,7 +17,7 @@ class CircularProfile:
         self._depth = depth
         self._is_inner = is_inner
 
-    def validate(self, options = None):
+    def validate(self, options=None):
         results = []
         if self._centre is None:
             results.append(ValidationResult(False, 'Profile centre coordinates must be specified'))

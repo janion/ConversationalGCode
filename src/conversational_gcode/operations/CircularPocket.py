@@ -19,7 +19,7 @@ class CircularPocket:
         self._depth = depth
         self._finishing_pass = finishing_pass
 
-    def validate(self, options = None):
+    def validate(self, options=None):
         results = []
         if self._centre is None:
             results.append(ValidationResult(False, 'Pocket centre coordinates must be specified'))
@@ -105,7 +105,7 @@ class CircularPocket:
 
         if final_path_radius <= tool_options.max_helix_stepover:
             # Helical interpolate to final depth as there is no need to spiral out to final diameter
-            helical_plunge(self._centre[0], initial_path_radius, total_plunge, position,
+            helical_plunge(self._centre, initial_path_radius, total_plunge, position,
                            commands, tool_options, precision)
         else:
             # Mill out material in depth steps
@@ -116,7 +116,7 @@ class CircularPocket:
                 position[2] = deepest_cut_depth
 
                 # Helical interpolate to depth
-                helical_plunge((self._centre[0], self._centre[1]), path_radius, step_plunge, position,
+                helical_plunge(self._centre, path_radius, step_plunge, position,
                                commands, tool_options, precision)
 
                 deepest_cut_depth = position[2]

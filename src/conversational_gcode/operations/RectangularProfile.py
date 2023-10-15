@@ -28,7 +28,7 @@ class RectangularProfile:
         self._start_depth = start_depth
         self._is_inner = is_inner
 
-    def validate(self, options):
+    def validate(self, options=None):
         results = []
         if self._width is None or self._width <= 0:
             results.append(ValidationResult(False, 'Profile width must be positive and non-zero'))
