@@ -43,21 +43,31 @@ class ToolOptions(Jsonable):
         results = []
         if self._tool_flutes is None or self._tool_flutes < 1:
             results.append(ValidationResult(False, 'Tool flute count must be 1 or more'))
+
         if self._tool_diameter is None or self._tool_diameter <= 0:
             results.append(ValidationResult(False, 'Tool diameter must be positive'))
+            diameter_valid = False
+        else:
+            diameter_valid = True
+
         if self._spindle_speed is None or self._spindle_speed <= 0:
             results.append(ValidationResult(False, 'Spindle speed must be positive'))
+
         if self._feed_rate is None or self._feed_rate <= 0:
             results.append(ValidationResult(False, 'Feed rate must be positive'))
+            feed_rate_valid = False
+        else:
+            feed_rate_valid = True
+
         if self._max_stepover is None or self._max_stepover <= 0:
             results.append(ValidationResult(False, 'Tool step-over must be positive'))
-        if self._max_stepover > self._tool_diameter:
+        if diameter_valid and self._max_stepover is not None and self._max_stepover > self._tool_diameter:
             results.append(ValidationResult(False, 'Tool step-over cannot be more than the tool diameter'))
         if self._max_stepdown is None or self._max_stepdown <= 0:
             results.append(ValidationResult(False, 'Tool step-down must be positive'))
         if self._max_helix_stepover is None or self._max_helix_stepover <= 0:
             results.append(ValidationResult(False, 'Helical tool step-over must be positive'))
-        if self._max_helix_stepover > self._tool_diameter / 2:
+        if diameter_valid and self._max_helix_stepover is not None and self._max_helix_stepover > self._tool_diameter / 2:
             results.append(ValidationResult(False, 'Helical tool step-over cannot be more than the tool radius'))
         if self._helix_feed_rate is not None and self._helix_feed_rate <= 0:
             results.append(ValidationResult(False, 'Helical feed rate must be positive'))
@@ -66,11 +76,11 @@ class ToolOptions(Jsonable):
         if self._finishing_pass is not None:
             if self._finishing_pass < 0:
                 results.append(ValidationResult(False, 'Finishing pass must be positive or None'))
-            if self._finishing_pass > 0 and (self._finishing_feed_rate is None or self._finishing_feed_rate <= 0):
+            if diameter_valid and self._finishing_pass > self._tool_diameter:
+                results.append(ValidationResult(False, 'Finishing pass cannot be more than the tool diameter'))
+            if self._finishing_pass > 0 and feed_rate_valid and (self.finishing_feed_rate is None or self.finishing_feed_rate <= 0):
                 results.append(ValidationResult(False, 'Finishing feed rate must be positive'))
-            if self._finishing_pass > 0 and self._finishing_climb is None:
-                results.append(ValidationResult(False, 'Finishing pass must be specified as either climb or conventional cutting direction (True = climb or False = conventional)'))
-            
+
         if len(results) == 0:
             results.append(ValidationResult())
         
@@ -144,7 +154,7 @@ class ToolOptions(Jsonable):
         fset=_set_max_helix_stepover
     )
     helix_feed_rate = property(
-        fget=lambda self: self._helix_feed_rate,
+        fget=lambda self: self._helix_feed_rate if self._helix_feed_rate is not None else self._feed_rate,
         fset=_set_helix_feed_rate
     )
     max_helix_angle = property(
@@ -161,6 +171,6 @@ class ToolOptions(Jsonable):
         fset=_set_finishing_feed_rate
     )
     finishing_climb = property(
-        fget=lambda self: self._finishing_climb,
+        fget=lambda self: self._finishing_climb is not None and self._finishing_climb,
         fset=_set_finishing_climb
     )
