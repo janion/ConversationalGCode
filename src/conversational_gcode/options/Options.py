@@ -1,8 +1,11 @@
 from conversational_gcode.options.ToolOptions import ToolOptions
 from conversational_gcode.options.JobOptions import JobOptions
 from conversational_gcode.options.OutputOptions import OutputOptions
+from conversational_gcode.validate.validation_result import ValidationResult
+from conversational_gcode.Jsonable import Jsonable
 
-class Options:
+
+class Options(Jsonable):
 
     def __init__(self, tool: ToolOptions, job: JobOptions, output: OutputOptions):
         if tool is None:
@@ -15,6 +18,19 @@ class Options:
         self._tool = tool
         self._job = job
         self._output = output
+
+    def validate(self):
+        results = []
+        results.extend(self._output.validate())
+        results.extend(self._job.validate())
+        results.extend(self._tool.validate())
+
+        results = list(filter(lambda result: not result.success, results))
+
+        if len(results) == 0:
+            results.append(ValidationResult())
+
+        return results
 
     tool = property(fget=lambda self: self._tool)
     job = property(fget=lambda self: self._job)

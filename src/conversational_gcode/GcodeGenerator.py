@@ -1,3 +1,4 @@
+from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.gcodes.GCodes import Comment, M2, M3, M5, G0
 
 
@@ -29,7 +30,25 @@ class GcodeGenerator:
     def add_operation(self, operation):
         self._operations.append(operation)
 
+    def _validate(self):
+        results = []
+        results.extend(self._options.validate())
+        for op in self._operations:
+            results.extend(op.validate(self._options))
+
+        results = list(filter(lambda result: not result.success, results))
+
+        if len(results) == 0:
+            results.append(ValidationResult())
+
+        return results
+
     def generate(self, position=None):
+        results = self._validate()
+
+        if len(results) > 1 or not results[0].success:
+            return [result.message for result in results]
+
         if position is None:
             position = [0, 0, 0]
         # commands = CommandPrinter(self._options.output)
