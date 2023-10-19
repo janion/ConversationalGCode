@@ -19,12 +19,8 @@ class RectangularProfile(Jsonable):
         self._length = length
         self._depth = depth
 
-        if centre is not None:
-            self._centre = centre
-        if corner is not None:
-            self._corner = corner
-        if centre is None and corner is None:
-            self._centre = [0, 0]
+        self._centre = centre
+        self._corner = corner
         
         self._start_depth = start_depth
         self._is_inner = is_inner

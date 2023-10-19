@@ -1,4 +1,8 @@
 from conversational_gcode.GcodeGenerator import GcodeGenerator
+from conversational_gcode.operations.CircularPocket import CircularPocket
+from conversational_gcode.operations.CircularProfile import CircularProfile
+from conversational_gcode.operations.RectangularPocket import RectangularPocket
+from conversational_gcode.operations.RectangularProfile import RectangularProfile
 from conversational_gcode.operations.Drill import Drill
 from conversational_gcode.options.Options import Options
 from conversational_gcode.options.ToolOptions import ToolOptions
@@ -45,14 +49,11 @@ if __name__ == '__main__':
 
     # gcode_generator.add_operation(RectangularProfile(centre=[10, 10], width=32, length=22, depth=2, is_inner=False))
 
-    gcode_generator.add_operation(Drill(centres=[[10, 10], [-10, 10]], depth=2, peck_interval=3))
-    gcode_generator.add_operation(Drill(centres=[[-10, -10], [-10, -5]], depth=2, dwell=3))
-    gcode_generator.add_operation(Drill(centres=[[10, -5], [5, -5]], depth=2))
+    # gcode_generator.add_operation(Drill(centres=[[10, 10], [-10, 10]], depth=2, peck_interval=3))
+    # gcode_generator.add_operation(Drill(centres=[[-10, -10], [-10, -5]], depth=2, dwell=3))
+    # gcode_generator.add_operation(Drill(centres=[[10, -5], [5, -5]], depth=2))
 
-    position = [0, 0, 0]
-    commands = gcode_generator.generate(position=position)
+    commands = gcode_generator.generate()
 
     for command in commands:
         print(command.format(output_options))
-
-    print(f'\nFinal position: {position}')
