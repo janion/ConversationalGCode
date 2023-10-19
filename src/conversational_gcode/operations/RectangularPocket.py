@@ -24,6 +24,8 @@ class RectangularPocket(Jsonable):
 
         self._centre = centre
         self._corner = corner
+        if centre is None and corner is None:
+            self._centre = [0, 0]
         
         self._start_depth = start_depth
         self._finishing_pass = finishing_pass
