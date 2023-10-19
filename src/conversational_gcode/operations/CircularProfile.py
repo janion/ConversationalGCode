@@ -1,9 +1,10 @@
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import helical_plunge
 from conversational_gcode.gcodes.GCodes import Comment, G0
+from conversational_gcode.Jsonable import Jsonable
 
 
-class CircularProfile:
+class CircularProfile(Jsonable):
 
     def __init__(self,
                  centre: list = None,

@@ -1,8 +1,9 @@
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.gcodes.GCodes import Comment, G80, G81, G82, G83, CyclePosition
+from conversational_gcode.Jsonable import Jsonable
 
 
-class Drill:
+class Drill(Jsonable):
 
     def __init__(self,
                  centres: list = None,

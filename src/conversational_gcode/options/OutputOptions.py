@@ -1,7 +1,8 @@
 from conversational_gcode.validate.validation_result import ValidationResult
+from conversational_gcode.Jsonable import Jsonable
 
 
-class OutputOptions:
+class OutputOptions(Jsonable):
 
     def __init__(self, position_precision: int = 3, feed_precision: int = 2, speed_precision: int = 1):
         self._position_precision = position_precision

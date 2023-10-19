@@ -2,8 +2,10 @@ from conversational_gcode.options.ToolOptions import ToolOptions
 from conversational_gcode.options.JobOptions import JobOptions
 from conversational_gcode.options.OutputOptions import OutputOptions
 from conversational_gcode.validate.validation_result import ValidationResult
+from conversational_gcode.Jsonable import Jsonable
 
-class Options:
+
+class Options(Jsonable):
 
     def __init__(self, tool: ToolOptions, job: JobOptions, output: OutputOptions):
         if tool is None:

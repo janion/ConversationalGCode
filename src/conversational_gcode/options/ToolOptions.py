@@ -1,7 +1,8 @@
 from conversational_gcode.validate.validation_result import ValidationResult
+from conversational_gcode.Jsonable import Jsonable
 
 
-class ToolOptions:
+class ToolOptions(Jsonable):
 
     def __init__(self,
                  tool_flutes: int = 4,

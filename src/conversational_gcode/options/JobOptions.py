@@ -1,7 +1,8 @@
 from conversational_gcode.validate.validation_result import ValidationResult
+from conversational_gcode.Jsonable import Jsonable
 
 
-class JobOptions:
+class JobOptions(Jsonable):
 
     def __init__(self, clearance_height: float = 10, lead_in: float = 0.25):
         self._clearance_height = clearance_height

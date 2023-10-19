@@ -2,9 +2,10 @@ from math import ceil, tan, pi, isclose, pow
 
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.gcodes.GCodes import Comment, G0, G1
+from conversational_gcode.Jsonable import Jsonable
 
 
-class RectangularProfile:
+class RectangularProfile(Jsonable):
 
     def __init__(self,
                  width: float = 10,

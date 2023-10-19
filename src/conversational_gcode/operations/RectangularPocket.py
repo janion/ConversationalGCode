@@ -5,9 +5,10 @@ from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import rapid_with_z_hop, helical_plunge, spiral_out
 from conversational_gcode.gcodes.GCodes import Comment, G0, G1, G2
 from conversational_gcode.transform.Rotation import Rotation
+from conversational_gcode.Jsonable import Jsonable
 
 
-class RectangularPocket:
+class RectangularPocket(Jsonable):
 
     def __init__(self,
                  width: float = 10,
