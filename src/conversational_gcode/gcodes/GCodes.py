@@ -1,8 +1,46 @@
+"""
+GCode command objects which are exported by the various operations.
+
+Contained objects:
+- Comment
+  - Prints a line, starting with a semicolon, with text following it.
+- M2
+  - Prints an M2 command to stop the machine spindle.
+- M3
+  - Prints an M3 command to start the machine spindle.
+- M5
+  - Prints an M5 command to end the program.
+- G0
+  - Prints a G0 command to rapidly move the tool to a given location.
+- G1
+  - Prints a G1 command to feed the tool to a given location.
+- G2
+  - Prints a G2 command to feed the tool in a clockwise circular arc.
+- G3
+  - Prints a G3 command to feed the tool in an anticlockwise circular arc.
+- G80
+  - Prints a G80 command to end a canned cycle.
+- G81
+  - Prints a G81 command to start a canned cycle for drilling.
+- G82
+  - Prints a G82 command to start a canned cycle for spot drilling.
+- G83
+  - Prints a G81 command to start a canned cycle for peck drilling.
+- CyclePosition
+  - Prints an XY location for use within a canned cycle.
+"""
+
 from dataclasses import dataclass
 
 
 @dataclass
 class Comment:
+    """
+    A comment in a GCode file.
+
+    Attributes:
+        comment (str): An optional comment to print at the end of the line.
+    """
     comment: str = None
 
     def format(self, output_options):
@@ -14,6 +52,12 @@ class Comment:
 
 @dataclass
 class M2(Comment):
+    """
+    An M2 command to stop the machine spindle.
+
+    Attributes:
+        comment (str): An optional comment to print at the end of the line.
+    """
 
     def format(self, output_options):
         end = ';' if self.comment is None else f'; {self.comment}'
@@ -22,6 +66,13 @@ class M2(Comment):
 
 @dataclass
 class M3(Comment):
+    """
+    An M3 command to start the machine spindle.
+
+    Attributes:
+        s (float): The RPM (revolutions per minute) at which to set the spindle.
+        comment (str): An optional comment to print at the end of the line.
+    """
     s: float = None  # rpm
 
     def format(self, output_options):
@@ -33,6 +84,12 @@ class M3(Comment):
 
 @dataclass
 class M5(Comment):
+    """
+    An M2 command to end the GCode program.
+
+    Attributes:
+        comment (str): An optional comment to print at the end of the line.
+    """
 
     def format(self, output_options):
         end = ';' if self.comment is None else f'; {self.comment}'
@@ -41,6 +98,15 @@ class M5(Comment):
 
 @dataclass
 class G0(Comment):
+    """
+    G0 command to rapidly move the tool to a given location.
+
+    Attributes:
+        x (float): The X axis location to which to move the tool.
+        y (float): The Y axis location to which to move the tool.
+        z (float): The Z axis location to which to move the tool.
+        comment (str): An optional comment to print at the end of the line.
+    """
     x: float = None  # mm
     y: float = None  # mm
     z: float = None  # mm
@@ -64,6 +130,16 @@ class G0(Comment):
 
 @dataclass
 class G1(G0):
+    """
+    G1 command to feed the tool to a given location.
+
+    Attributes:
+        x (float): The X axis location to which to move the tool.
+        y (float): The Y axis location to which to move the tool.
+        z (float): The Z axis location to which to move the tool.
+        f (float): The feed rate at which to move the tool.
+        comment (str): An optional comment to print at the end of the line.
+    """
     f: float = None  # mm per min
 
     def format(self, output_options):
@@ -79,6 +155,22 @@ class G1(G0):
 
 @dataclass
 class G2(G1):
+    """
+    G2 command to feed the tool to a given location via a clockwise circular arc.
+
+    Attributes:
+        x (float): The X axis location to which to move the tool.
+        y (float): The Y axis location to which to move the tool.
+        z (float): The Z axis location to which to move the tool.
+        i (float): The relative X axis location of the arc centre about which to move the tool.
+            This is relative to the starting location.
+        j (float): The relative Y axis location of the arc centre about which to move the tool.
+            This is relative to the starting location.
+        k (float): The relative Z axis location of the arc centre about which to move the tool.
+            This is relative to the starting location.
+        f (float): The feed rate at which to move the tool.
+        comment (str): An optional comment to print at the end of the line.
+    """
     i: float = None  # mm
     j: float = None  # mm
     k: float = None  # mm
@@ -113,12 +205,34 @@ class G2(G1):
 
 @dataclass
 class G3(G2):
+    """
+    G3 command to feed the tool to a given location via an anticlockwise circular arc.
+
+    Attributes:
+        x (float): The X axis location to which to move the tool.
+        y (float): The Y axis location to which to move the tool.
+        z (float): The Z axis location to which to move the tool.
+        i (float): The relative X axis location of the arc centre about which to move the tool.
+            This is relative to the starting location.
+        j (float): The relative Y axis location of the arc centre about which to move the tool.
+            This is relative to the starting location.
+        k (float): The relative Z axis location of the arc centre about which to move the tool.
+            This is relative to the starting location.
+        f (float): The feed rate at which to move the tool.
+        comment (str): An optional comment to print at the end of the line.
+    """
 
     def format(self, output_options):
         return self._format_arc('G3', output_options)
 
 
 class G80(Comment):
+    """
+    G80 command to finish a canned cycle.
+
+    Attributes:
+        comment (str): An optional comment to print at the end of the line.
+    """
 
     def format(self, output_options):
         end = ';' if self.comment is None else f'; {self.comment}'
@@ -127,6 +241,17 @@ class G80(Comment):
 
 @dataclass
 class G81(G1):
+    """
+    G81 command to feed the tool to start a canned cycle for drilling.
+
+    Attributes:
+        x (float): The X axis location to which to drill the first hole.
+        y (float): The Y axis location to which to drill the first hole.
+        z (float): The Z axis depth of the holes.
+        r (float): The retraction height to pull back to between holes.
+        f (float): The feed rate at which to advance the drill.
+        comment (str): An optional comment to print at the end of the line.
+    """
     r: float = None  # mm
 
     def format(self, output_options):
@@ -143,6 +268,18 @@ class G81(G1):
 
 @dataclass
 class G82(G81):
+    """
+    G82 command to feed the tool to start a canned cycle for spot drilling.
+
+    Attributes:
+        x (float): The X axis location to which to drill the first hole.
+        y (float): The Y axis location to which to drill the first hole.
+        z (float): The Z axis depth of the holes.
+        r (float): The retraction height to pull back to between holes.
+        p (float): The dwell time at the bottom of the hole, in milliseconds.
+        f (float): The feed rate at which to advance the drill.
+        comment (str): An optional comment to print at the end of the line.
+    """
     p: float = 0  # ms
 
     def format(self, output_options):
@@ -160,6 +297,18 @@ class G82(G81):
 
 @dataclass
 class G83(G81):
+    """
+    G83 command to feed the tool to start a canned cycle for peck drilling.
+
+    Attributes:
+        x (float): The X axis location to which to drill the first hole.
+        y (float): The Y axis location to which to drill the first hole.
+        z (float): The Z axis depth of the holes.
+        r (float): The retraction height to pull back to between holes.
+        i (float): The distance at which a peck retraction should be performed.
+        f (float): The feed rate at which to advance the drill.
+        comment (str): An optional comment to print at the end of the line.
+    """
     i: float = None  # mm
 
     def format(self, output_options):
@@ -176,7 +325,17 @@ class G83(G81):
 
 
 @dataclass
-class CyclePosition(G0):
+class CyclePosition(Comment):
+    """
+    A command for a position in a canned cycle.
+
+    Attributes:
+        x (float): The X axis location at which to drill.
+        y (float): The Y axis location at which to drill.
+        comment (str): An optional comment to print at the end of the line.
+    """
+    x: float = None  # mm
+    y: float = None  # mm
 
     def format(self, output_options):
         position_precision = output_options.position_precision
