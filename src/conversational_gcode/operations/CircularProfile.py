@@ -1,3 +1,11 @@
+"""
+Operation to create a circular profile.
+
+Classes:
+- CircularProfile
+  - Operation to create a circular profile.
+"""
+
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import helical_plunge
 from conversational_gcode.gcodes.GCodes import Comment, G0
@@ -5,6 +13,12 @@ from conversational_gcode.Jsonable import Jsonable
 
 
 class CircularProfile(Jsonable):
+    """
+    Operation to create a circular profile.
+
+    The profile is created by helically interpolating at the profile diameter, then completing one more pass to cut at
+    the full depth all the way around.
+    """
 
     def __init__(self,
                  centre: list = None,
@@ -13,6 +27,17 @@ class CircularProfile(Jsonable):
                  depth: float = 3,
                  is_inner: bool = True,
                  is_climb: bool = False):
+        """
+        Initialise the pocket operation.
+        :param centre: [X, Y] location of the profile centre. Defaults to [0, 0].
+        :param start_depth: The Z-axis depth at which the profile starts. Defaults to 0.
+        :param diameter: The diameter of the profile. Defaults to 10mm.
+        :param depth: The depth of the profile below the start depth. Defaults to 10mm.
+        :param is_inner: True if this operation is to cut an inside profile, False if to cut an outside profile.
+            Defaults to True.
+        :param is_climb: True if this operation is to climb vut the profile, False if to cut conventionally. Defaults
+            to False.
+        """
         self._centre = [0, 0] if centre is None else centre
         self._start_depth = start_depth
         self._diameter = diameter

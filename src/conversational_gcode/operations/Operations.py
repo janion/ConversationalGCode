@@ -1,8 +1,32 @@
+"""
+Operations common to multiple larger operations.
+
+Functions:
+- rapid_with_z_hop()
+  - A rapid move in a triangular path to prevent dragging the tool on the previously cut surface.
+- helical_plunge()
+  - Helical interpolation to a set depth.
+- spiral_out()
+  - Spiral out from a given location to a final diameter.
+"""
+
 from math import pi, ceil, tan, pow, isclose
+
+from conversational_gcode.options.JobOptions import JobOptions
+from conversational_gcode.options.ToolOptions import ToolOptions
 from conversational_gcode.gcodes.GCodes import Comment, G0, G2, G3
 
 
-def rapid_with_z_hop(position, new_position, job_options, comment=None):
+def rapid_with_z_hop(position: list[float], new_position: list[float], job_options: JobOptions, comment: str = None):
+    """
+    A rapid move in a triangular path to prevent dragging the tool on the previously cut surface. This splits the path
+    in half to make the move symmetrical.
+    :param position: Start position from which to move.
+    :param new_position: End position to which to move.
+    :param job_options: Job options from which to get hop height.
+    :param comment: Optional comment to add to the first move.
+    :return: The commands to perform the move, and the positions (mid and final, not start)
+    """
     mid_position = [
         (position[0] + (new_position[0] - position[0]) / 2) if position[0] is not None else new_position[0],
         (position[1] + (new_position[1] - position[1]) / 2) if position[1] is not None else new_position[1],
@@ -21,7 +45,28 @@ def rapid_with_z_hop(position, new_position, job_options, comment=None):
     return rapid_commands, rapid_positions
 
 
-def helical_plunge(centre, path_radius, plunge_depth, position, commands, tool_options, precision, is_inner=True, is_climb=False):
+def helical_plunge(
+        centre: list[float],
+        path_radius: float,
+        plunge_depth: float,
+        position: list[float],
+        commands: list,
+        tool_options: ToolOptions,
+        precision: float,
+        is_inner: bool = True,
+        is_climb: bool = False):
+    """
+    Helically interpolate to a given depth.
+    :param centre: XY centre of the helix.
+    :param path_radius: Radius of the helical path.
+    :param plunge_depth: Depth to which to plunge.
+    :param position: current position of the tool. To be mutated to keep up to date.
+    :param commands: List of GCode commands to which to add.
+    :param tool_options: Options for the tool.
+    :param precision: Positional precision to use.
+    :param is_inner: True if cutting inside a diameter.
+    :param is_climb: True if using a climb cut rather than a conventional cut.
+    """
     # Position tool at 3 o'clock from hole centre
     position[0] = centre[0] + path_radius
     position[1] = centre[1]
@@ -52,14 +97,31 @@ def helical_plunge(centre, path_radius, plunge_depth, position, commands, tool_o
                 comment='Final full pass at depth'))
 
 
-def spiral_out(current_radius, final_path_radius, position, commands, tool_options, precision):
+def spiral_out(
+        current_radius: float,
+        final_path_radius: float,
+        position: list[float],
+        commands: list,
+        tool_options: ToolOptions,
+        precision: float):
+    """
+    Spiral out from a given location to a final diameter.
+
+    Assumes that it is following a helical plunge at an initial radius.
+    :param current_radius: Radius of the current path.
+    :param final_path_radius: Target radius of the final path.
+    :param position: current position of the tool. To be mutated to keep up to date.
+    :param commands: List of GCode commands to which to add.
+    :param tool_options: Options for the tool.
+    :param precision: Positional precision to use.
+    """
     radial_stepover = (final_path_radius - current_radius) / max(1, ceil(
         (final_path_radius - tool_options.max_helix_stepover) / tool_options.max_stepover))
     path_radius = current_radius
 
     commands.append(Comment('Spiral out to final radius'))
     while not isclose(path_radius, final_path_radius, abs_tol=pow(10, -precision)):
-        # Semi circle out increasing radius
+        # Semicircle out increasing radius
         path_radius += radial_stepover / 2
         position[0] -= path_radius * 2
         commands.append(G2(x=position[0], y=position[1], i=-path_radius, f=tool_options.feed_rate))

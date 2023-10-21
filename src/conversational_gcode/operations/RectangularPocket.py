@@ -1,3 +1,11 @@
+"""
+Operation to create a rectangular pocket.
+
+Classes:
+- RectangularPocket
+  - Operation to create a rectangular pocket.
+"""
+
 from math import ceil, pow, isclose, sqrt
 from copy import deepcopy
 
@@ -9,15 +17,33 @@ from conversational_gcode.Jsonable import Jsonable
 
 
 class RectangularPocket(Jsonable):
+    """
+    Operation to create a rectangular pocket.
+
+    The pocket is created by helically interpolating at one end of the pocket, then spiralling out to the final width,
+    then clearing the near corners, followed by the far corners, using arcs centred at the original plunge location.
+    This is done in multiple, evenly sized steps based on the configured stepdown.
+    """
 
     def __init__(self,
                  width: float = 10,
                  length: float = 10,
                  depth: float = 3,
-                 centre: list = None,
-                 corner: list = None,
+                 centre: list[float] = None,
+                 corner: list[float] = None,
                  start_depth: float = 0,
                  finishing_pass: bool = False):
+        """
+        Initialise the pocket operation.
+        :param width: X-axis size of the pocket centre. Defaults to 10mm.
+        :param length: Y-axis of the pocket centre. Defaults to 10mm.
+        :param depth: The depth of the pocket below the start depth. Defaults to 3mm.
+        :param centre: [X, Y] location of the pocket centre. Defaults to [0, 0] if centre and corner not set.
+        :param corner: [X, Y] location of the minimum X and Y corner of the pocket,
+            bottom left if X axis is left to right, and Y axis is near to far. Defaults to None.
+        :param start_depth: The Z axis depth at which the pocket starts. Defaults to 0.
+        :param finishing_pass: True if this operation includes a finishing pass. Defaults to False.
+        """
         self._width = width
         self._length = length
         self._depth = depth

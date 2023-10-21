@@ -102,9 +102,9 @@ class G0(Comment):
     G0 command to rapidly move the tool to a given location.
 
     Attributes:
-        x (float): The X axis location to which to move the tool.
-        y (float): The Y axis location to which to move the tool.
-        z (float): The Z axis location to which to move the tool.
+        x (float): The X-axis location to which to move the tool.
+        y (float): The Y-axis location to which to move the tool.
+        z (float): The Z-axis location to which to move the tool.
         comment (str): An optional comment to print at the end of the line.
     """
     x: float = None  # mm
@@ -134,9 +134,9 @@ class G1(G0):
     G1 command to feed the tool to a given location.
 
     Attributes:
-        x (float): The X axis location to which to move the tool.
-        y (float): The Y axis location to which to move the tool.
-        z (float): The Z axis location to which to move the tool.
+        x (float): The X-axis location to which to move the tool.
+        y (float): The Y-axis location to which to move the tool.
+        z (float): The Z-axis location to which to move the tool.
         f (float): The feed rate at which to move the tool.
         comment (str): An optional comment to print at the end of the line.
     """
@@ -159,14 +159,14 @@ class G2(G1):
     G2 command to feed the tool to a given location via a clockwise circular arc.
 
     Attributes:
-        x (float): The X axis location to which to move the tool.
-        y (float): The Y axis location to which to move the tool.
-        z (float): The Z axis location to which to move the tool.
-        i (float): The relative X axis location of the arc centre about which to move the tool.
+        x (float): The X-axis location to which to move the tool.
+        y (float): The Y-axis location to which to move the tool.
+        z (float): The Z-axis location to which to move the tool.
+        i (float): The relative X-axis location of the arc centre about which to move the tool.
             This is relative to the starting location.
-        j (float): The relative Y axis location of the arc centre about which to move the tool.
+        j (float): The relative Y-axis location of the arc centre about which to move the tool.
             This is relative to the starting location.
-        k (float): The relative Z axis location of the arc centre about which to move the tool.
+        k (float): The relative Z-axis location of the arc centre about which to move the tool.
             This is relative to the starting location.
         f (float): The feed rate at which to move the tool.
         comment (str): An optional comment to print at the end of the line.
@@ -209,14 +209,14 @@ class G3(G2):
     G3 command to feed the tool to a given location via an anticlockwise circular arc.
 
     Attributes:
-        x (float): The X axis location to which to move the tool.
-        y (float): The Y axis location to which to move the tool.
-        z (float): The Z axis location to which to move the tool.
-        i (float): The relative X axis location of the arc centre about which to move the tool.
+        x (float): The X-axis location to which to move the tool.
+        y (float): The Y-axis location to which to move the tool.
+        z (float): The Z-axis location to which to move the tool.
+        i (float): The relative X-axis location of the arc centre about which to move the tool.
             This is relative to the starting location.
-        j (float): The relative Y axis location of the arc centre about which to move the tool.
+        j (float): The relative Y-axis location of the arc centre about which to move the tool.
             This is relative to the starting location.
-        k (float): The relative Z axis location of the arc centre about which to move the tool.
+        k (float): The relative Z-axis location of the arc centre about which to move the tool.
             This is relative to the starting location.
         f (float): The feed rate at which to move the tool.
         comment (str): An optional comment to print at the end of the line.
@@ -245,9 +245,9 @@ class G81(G1):
     G81 command to feed the tool to start a canned cycle for drilling.
 
     Attributes:
-        x (float): The X axis location to which to drill the first hole.
-        y (float): The Y axis location to which to drill the first hole.
-        z (float): The Z axis depth of the holes.
+        x (float): The X-axis location to which to drill the first hole.
+        y (float): The Y-axis location to which to drill the first hole.
+        z (float): The Z-axis depth of the holes.
         r (float): The retraction height to pull back to between holes.
         f (float): The feed rate at which to advance the drill.
         comment (str): An optional comment to print at the end of the line.
@@ -272,9 +272,9 @@ class G82(G81):
     G82 command to feed the tool to start a canned cycle for spot drilling.
 
     Attributes:
-        x (float): The X axis location to which to drill the first hole.
-        y (float): The Y axis location to which to drill the first hole.
-        z (float): The Z axis depth of the holes.
+        x (float): The X-axis location to which to drill the first hole.
+        y (float): The Y-axis location to which to drill the first hole.
+        z (float): The Z-axis depth of the holes.
         r (float): The retraction height to pull back to between holes.
         p (float): The dwell time at the bottom of the hole, in milliseconds.
         f (float): The feed rate at which to advance the drill.
@@ -301,9 +301,9 @@ class G83(G81):
     G83 command to feed the tool to start a canned cycle for peck drilling.
 
     Attributes:
-        x (float): The X axis location to which to drill the first hole.
-        y (float): The Y axis location to which to drill the first hole.
-        z (float): The Z axis depth of the holes.
+        x (float): The X-axis location to which to drill the first hole.
+        y (float): The Y-axis location to which to drill the first hole.
+        z (float): The Z-axis depth of the holes.
         r (float): The retraction height to pull back to between holes.
         i (float): The distance at which a peck retraction should be performed.
         f (float): The feed rate at which to advance the drill.
@@ -330,8 +330,8 @@ class CyclePosition(Comment):
     A command for a position in a canned cycle.
 
     Attributes:
-        x (float): The X axis location at which to drill.
-        y (float): The Y axis location at which to drill.
+        x (float): The X-axis location at which to drill.
+        y (float): The Y-axis location at which to drill.
         comment (str): An optional comment to print at the end of the line.
     """
     x: float = None  # mm

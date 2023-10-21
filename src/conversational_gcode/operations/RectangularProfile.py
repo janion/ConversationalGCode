@@ -1,3 +1,11 @@
+"""
+Operation to create a rectangular profile.
+
+Classes:
+- RectangularProfile
+  - Operation to create a rectangular profile.
+"""
+
 from math import ceil, tan, pi, isclose, pow
 
 from conversational_gcode.validate.validation_result import ValidationResult
@@ -6,6 +14,13 @@ from conversational_gcode.Jsonable import Jsonable
 
 
 class RectangularProfile(Jsonable):
+    """
+    Operation to create a rectangular profile.
+
+    The profile is created by traversing the profile outline in the XY-plane, while also slowly plunging in the Z-axis.
+    Once the tool has reached the final depth, the profile will be traversed once more to cut the entire profile at
+    full depth.
+    """
 
     def __init__(self,
                  width: float = 10,
@@ -16,6 +31,20 @@ class RectangularProfile(Jsonable):
                  start_depth: float = 0,
                  is_inner: bool = True,
                  is_climb: bool = False):
+        """
+        Initialise the profile operation.
+        :param width: X-axis size of the profile centre. Defaults to 10mm.
+        :param length: Y-axis of the profile centre. Defaults to 10mm.
+        :param depth: The depth of the profile below the start depth. Defaults to 3mm.
+        :param centre: [X, Y] location of the profile centre. Defaults to [0, 0] if centre and corner not set.
+        :param corner: [X, Y] location of the minimum X and Y corner of the profile,
+            bottom left if X axis is left to right, and Y axis is near to far. Defaults to None.
+        :param start_depth: The Z axis depth at which the profile starts. Defaults to 0.
+        :param is_inner: True if this operation is to cut an inside profile, False if to cut an outside profile.
+            Defaults to True.
+        :param is_climb: True if this operation is to climb vut the profile, False if to cut conventionally. Defaults
+            to False.
+        """
         self._width = width
         self._length = length
         self._depth = depth

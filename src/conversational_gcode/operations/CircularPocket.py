@@ -30,11 +30,11 @@ class CircularPocket(Jsonable):
                  finishing_pass: bool = False):
         """
         Initialise the pocket operation.
-        :param centre: [X, Y] location of the pocket centre.
-        :param start_depth: The Z axis depth at which the pocket starts.
-        :param diameter: The diameter of the pocket.
-        :param depth: The depth of the pocket below the start depth.
-        :param finishing_pass: True if this operation includes a finishing pass.
+        :param centre: [X, Y] location of the pocket centre. Defaults to [0, 0].
+        :param start_depth: The Z-axis depth at which the pocket starts. Defaults to 0.
+        :param diameter: The diameter of the pocket. Defaults to 10mm.
+        :param depth: The depth of the pocket below the start depth. Defaults to 10mm.
+        :param finishing_pass: True if this operation includes a finishing pass. Defaults to False.
         """
         self._centre = [0, 0] if centre is None else centre
         self._start_depth = start_depth
