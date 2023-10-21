@@ -1,3 +1,11 @@
+"""
+Operation to create a circular pocket.
+
+Classes:
+- CircularPocket
+  - Operation to create a circular pocket.
+"""
+
 from math import ceil, pow, isclose
 
 from conversational_gcode.validate.validation_result import ValidationResult
@@ -7,13 +15,27 @@ from conversational_gcode.Jsonable import Jsonable
 
 
 class CircularPocket(Jsonable):
+    """
+    Operation to create a circular pocket.
+
+    The pocket is created by helically interpolating at the pocket centre, then spiralling out to the final diameter.
+    This is done in multiple, evenly sized steps based on the configured stepdown.
+    """
 
     def __init__(self,
-                 centre: list = None,
+                 centre: list[float] = None,
                  start_depth: float = 0,
                  diameter: float = 10,
                  depth: float = 10,
                  finishing_pass: bool = False):
+        """
+        Initialise the pocket operation.
+        :param centre: [X, Y] location of the pocket centre.
+        :param start_depth: The Z axis depth at which the pocket starts.
+        :param diameter: The diameter of the pocket.
+        :param depth: The depth of the pocket below the start depth.
+        :param finishing_pass: True if this operation includes a finishing pass.
+        """
         self._centre = [0, 0] if centre is None else centre
         self._start_depth = start_depth
         self._diameter = diameter
@@ -132,7 +154,7 @@ class CircularPocket(Jsonable):
 
         # Finishing pass
         if has_finishing_pass:
-            self._create_finishing_pass(position, commands, tool_options, job_options)
+            self._create_finishing_pass(position, commands, tool_options)
         # Clear wall
         self._clear_wall(position, commands, job_options)
 
@@ -153,7 +175,7 @@ class CircularPocket(Jsonable):
         position[2] += job_options.lead_in
         commands.append(G0(x=position[0], z=position[2], comment='Move cutter away from wall'))
 
-    def _create_finishing_pass(self, position, commands, tool_options, job_options):
+    def _create_finishing_pass(self, position, commands, tool_options):
         commands.append(Comment(f'Finishing pass of {tool_options.finishing_pass}mm'))
 
         is_left = self._centre[0] > position[0]

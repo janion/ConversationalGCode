@@ -1,7 +1,7 @@
 """
 GCode command objects which are exported by the various operations.
 
-Contained objects:
+Classes:
 - Comment
   - Prints a line, starting with a semicolon, with text following it.
 - M2
