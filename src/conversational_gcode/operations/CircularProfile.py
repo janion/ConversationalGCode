@@ -11,12 +11,14 @@ class CircularProfile(Jsonable):
                  start_depth: float = 0,
                  diameter: float = 10,
                  depth: float = 3,
-                 is_inner: bool = True):
+                 is_inner: bool = True,
+                 is_climb: bool = False):
         self._centre = [0, 0] if centre is None else centre
         self._start_depth = start_depth
         self._diameter = diameter
         self._depth = depth
         self._is_inner = is_inner
+        self._is_climb = is_climb
 
     def validate(self, options=None):
         results = []
@@ -55,6 +57,9 @@ class CircularProfile(Jsonable):
     def _set_is_inner(self, value):
         self._is_inner = value
 
+    def _set_is_climb(self, value):
+        self._is_climb = value
+
     centre = property(
         fget=lambda self: self._centre,
         fset=_set_centre
@@ -75,6 +80,10 @@ class CircularProfile(Jsonable):
         fget=lambda self: self._is_inner,
         fset=_set_is_inner
     )
+    is_climb = property(
+        fget=lambda self: self._is_climb,
+        fset=_set_is_climb
+    )
 
     def generate(self, position, commands, options):
         # Setup
@@ -91,7 +100,15 @@ class CircularProfile(Jsonable):
         # Position tool ready to begin
         self._move_to_centre(position, commands, job_options)
 
-        helical_plunge(self._centre, path_radius, job_options.lead_in + self._depth, position, commands, tool_options, options.output.position_precision)
+        helical_plunge(self._centre,
+                       path_radius,
+                       job_options.lead_in + self._depth,
+                       position,
+                       commands,
+                       tool_options,
+                       options.output.position_precision,
+                       is_inner=self._is_inner,
+                       is_climb=self._is_climb)
 
     def _move_to_centre(self, position, commands, job_options):
         # Position tool at hole centre

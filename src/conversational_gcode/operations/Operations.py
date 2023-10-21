@@ -21,7 +21,7 @@ def rapid_with_z_hop(position, new_position, job_options, comment=None):
     return rapid_commands, rapid_positions
 
 
-def helical_plunge(centre, path_radius, plunge_depth, position, commands, tool_options, precision, is_inner=True):
+def helical_plunge(centre, path_radius, plunge_depth, position, commands, tool_options, precision, is_inner=True, is_climb=False):
     # Position tool at 3 o'clock from hole centre
     position[0] = centre[0] + path_radius
     position[1] = centre[1]
@@ -38,7 +38,7 @@ def helical_plunge(centre, path_radius, plunge_depth, position, commands, tool_o
 
     step_depth = position[2] - plunge_depth
 
-    if is_inner:
+    if is_inner == is_climb:
         command = G2
     else:
         command = G3

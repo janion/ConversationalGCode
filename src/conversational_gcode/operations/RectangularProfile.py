@@ -14,7 +14,8 @@ class RectangularProfile(Jsonable):
                  centre: list = None,
                  corner: list = None,
                  start_depth: float = 0,
-                 is_inner: bool = True):
+                 is_inner: bool = True,
+                 is_climb: bool = False):
         self._width = width
         self._length = length
         self._depth = depth
@@ -26,6 +27,7 @@ class RectangularProfile(Jsonable):
         
         self._start_depth = start_depth
         self._is_inner = is_inner
+        self._is_climb = is_climb
 
     def validate(self, options=None):
         results = []
@@ -41,6 +43,8 @@ class RectangularProfile(Jsonable):
             results.append(ValidationResult(False, 'Profile corner or centre coordinates must be specified, not both'))
         if self._is_inner is None:
             results.append(ValidationResult(False, 'Profile must be specified as either inner or outer (True = inner, False = outer)'))
+        if self._is_climb is None:
+            results.append(ValidationResult(False, 'Profile must be specified as either climb or not (True = climb, False = conventional)'))
 
         if options is not None:
             if self._is_inner and (self._width <= options.tool.tool_diameter or self._length <= options.tool.tool_diameter):
@@ -72,6 +76,9 @@ class RectangularProfile(Jsonable):
     def _set_is_inner(self, value):
         self._is_inner = value
 
+    def _set_is_climb(self, value):
+        self._is_climb = value
+
     width = property(
         fget=lambda self: self._width,
         fset=_set_width
@@ -99,6 +106,10 @@ class RectangularProfile(Jsonable):
     is_inner = property(
         fget=lambda self: self._is_inner,
         fset=_set_is_inner
+    )
+    is_climb = property(
+        fget=lambda self: self._is_climb,
+        fset=_set_is_climb
     )
 
     def generate(self, position, commands, options):
@@ -136,7 +147,7 @@ class RectangularProfile(Jsonable):
         x_travel_plunge = step_plunge * pocket_final_size[0] / total_xy_travel
         y_travel_plunge = step_plunge * pocket_final_size[1] / total_xy_travel
 
-        if self._is_inner:
+        if self._is_inner != self._is_climb:
             travels = [
                 [0, -pocket_final_size[1], -y_travel_plunge],
                 [-pocket_final_size[0], 0, -x_travel_plunge],
