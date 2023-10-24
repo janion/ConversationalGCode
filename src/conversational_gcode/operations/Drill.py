@@ -7,7 +7,7 @@ Classes:
 """
 
 from conversational_gcode.validate.validation_result import ValidationResult
-from conversational_gcode.gcodes.GCodes import Comment, G80, G81, G82, G83, CyclePosition
+from conversational_gcode.gcodes.GCodes import GCode, G80, G81, G82, G83, CyclePosition
 from conversational_gcode.Jsonable import Jsonable
 
 
@@ -124,4 +124,4 @@ class Drill(Jsonable):
             commands.append(CyclePosition(x=position[0], y=position[1]))
 
         commands.append(G80(comment='End drilling cycle'))
-        commands.append(Comment(''))
+        commands.append(GCode(''))

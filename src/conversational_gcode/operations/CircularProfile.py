@@ -8,7 +8,7 @@ Classes:
 
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import helical_plunge
-from conversational_gcode.gcodes.GCodes import Comment, G0
+from conversational_gcode.gcodes.GCodes import GCode, G0
 from conversational_gcode.Jsonable import Jsonable
 
 
@@ -115,7 +115,7 @@ class CircularProfile(Jsonable):
         tool_options = options.tool
         job_options = options.job
 
-        commands.append(Comment('Circular profile'))
+        commands.append(GCode('Circular profile'))
 
         if self._is_inner:
             path_radius = (self._diameter - tool_options.tool_diameter) / 2

@@ -1,10 +1,29 @@
+"""
+Generates GCode from configures objects.
+
+Classes:
+- _CommandPrinter
+  - Debugging tool to print commands as they are added to the list.
+- GcodeGenerator
+  - Iterates through configured operations and collates the GCode commands.
+"""
+
+from conversational_gcode.options.OutputOptions import OutputOptions
+from conversational_gcode.options.Options import Options
 from conversational_gcode.validate.validation_result import ValidationResult
-from conversational_gcode.gcodes.GCodes import Comment, M2, M3, M5, G0
+from conversational_gcode.gcodes.GCodes import GCode, M2, M3, M5, G0
 
 
-class CommandPrinter:
+class _CommandPrinter:
+    """
+    Debugging tool to print commands as they are added to the list.
+    """
 
-    def __init__(self, output_options):
+    def __init__(self, output_options: OutputOptions):
+        """
+        Initialise the printer.
+        :param output_options: OutputOptions to define how to format the printed output.
+        """
         self.output_options = output_options
         self.commands = []
 
@@ -22,15 +41,31 @@ class CommandPrinter:
 
 
 class GcodeGenerator:
+    """
+    Iterates through configured operations and collates the GCode commands.
+    """
 
-    def __init__(self, options):
+    def __init__(self, options: Options):
+        """
+        Initialise the generator.
+        :param options: Options for the generation.
+        """
         self._options = options
         self._operations = []
 
     def add_operation(self, operation):
+        """
+        Add an operation to the list.
+        :param operation: Operation to add.
+        :return: None.
+        """
         self._operations.append(operation)
 
-    def _validate(self):
+    def _validate(self) -> list[ValidationResult]:
+        """
+        Validate the operations and options.
+        :return: List of ValidationResults. Contains only 1 item if every option and operation is valid.
+        """
         results = []
         results.extend(self._options.validate())
         for op in self._operations:
@@ -43,7 +78,12 @@ class GcodeGenerator:
 
         return results
 
-    def generate(self, position=None):
+    def generate(self, position: list[float] = None) -> list[GCode]:
+        """
+        Generate the GCode for all of the operations.
+        :param position: Starting position of the job. Defaults to None to start at [0, 0, 0]
+        :return: List of generated GCode commands
+        """
         results = self._validate()
 
         if len(results) > 1 or not results[0].success:
@@ -57,16 +97,16 @@ class GcodeGenerator:
         position[2] = self._options.job.clearance_height
         commands.append(G0(z=position[2], comment='Clear tool'))
 
-        commands.append(Comment())
+        commands.append(GCode())
         commands.append(M3(s=self._options.tool.spindle_speed, comment='Start spindle'))
-        commands.append(Comment())
+        commands.append(GCode())
 
         for operation in self._operations:
             operation.generate(position, commands, self._options)
 
             position[2] = self._options.job.clearance_height
             commands.append(G0(z=position[2], comment='Clear tool'))
-            commands.append(Comment())
+            commands.append(GCode())
 
         commands.append(M5(comment='Stop spindle'))
         commands.append(M2(comment='End program'))

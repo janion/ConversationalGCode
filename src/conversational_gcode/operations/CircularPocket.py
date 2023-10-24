@@ -10,7 +10,7 @@ from math import ceil, pow, isclose
 
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import helical_plunge, spiral_out
-from conversational_gcode.gcodes.GCodes import Comment, G0, G2, G3
+from conversational_gcode.gcodes.GCodes import GCode, G0, G2, G3
 from conversational_gcode.Jsonable import Jsonable
 
 
@@ -151,7 +151,7 @@ class CircularPocket(Jsonable):
                     # Return to centre
                     if not isclose(deepest_cut_depth, final_depth, abs_tol=pow(10, -precision)):
                         self._clear_wall(position, commands, job_options)
-                    commands.append(Comment())
+                    commands.append(GCode())
 
         # Finishing pass
         if has_finishing_pass:
@@ -177,7 +177,7 @@ class CircularPocket(Jsonable):
         commands.append(G0(x=position[0], z=position[2], comment='Move cutter away from wall'))
 
     def _create_finishing_pass(self, position, commands, tool_options):
-        commands.append(Comment(f'Finishing pass of {tool_options.finishing_pass}mm'))
+        commands.append(GCode(f'Finishing pass of {tool_options.finishing_pass}mm'))
 
         is_left = self._centre[0] > position[0]
 

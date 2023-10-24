@@ -14,7 +14,7 @@ from math import pi, ceil, tan, pow, isclose
 
 from conversational_gcode.options.JobOptions import JobOptions
 from conversational_gcode.options.ToolOptions import ToolOptions
-from conversational_gcode.gcodes.GCodes import Comment, G0, G2, G3
+from conversational_gcode.gcodes.GCodes import GCode, G0, G2, G3
 
 
 def rapid_with_z_hop(position: list[float], new_position: list[float], job_options: JobOptions, comment: str = None):
@@ -74,7 +74,7 @@ def helical_plunge(
         G0(x=position[0], y=position[1], z=position[2], comment='Move to hole start position'))
 
     # Helically plunge to depth
-    commands.append(Comment('Helical interpolation down to step depth'))
+    commands.append(GCode('Helical interpolation down to step depth'))
     path_circumference = 2 * pi * path_radius
     plunge_per_rev_using_angle = path_circumference * tan(tool_options.max_helix_angle * pi / 180)
     average_plunge_per_rev_using_angle = plunge_depth / ceil(plunge_depth / plunge_per_rev_using_angle)
@@ -119,7 +119,7 @@ def spiral_out(
         (final_path_radius - tool_options.max_helix_stepover) / tool_options.max_stepover))
     path_radius = current_radius
 
-    commands.append(Comment('Spiral out to final radius'))
+    commands.append(GCode('Spiral out to final radius'))
     while not isclose(path_radius, final_path_radius, abs_tol=pow(10, -precision)):
         # Semicircle out increasing radius
         path_radius += radial_stepover / 2

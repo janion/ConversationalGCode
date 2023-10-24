@@ -9,7 +9,7 @@ Classes:
 from math import ceil, tan, pi, isclose, pow
 
 from conversational_gcode.validate.validation_result import ValidationResult
-from conversational_gcode.gcodes.GCodes import Comment, G0, G1
+from conversational_gcode.gcodes.GCodes import GCode, G0, G1
 from conversational_gcode.Jsonable import Jsonable
 
 
@@ -198,7 +198,7 @@ class RectangularProfile(Jsonable):
                 position[2] += travel[2]
                 commands.append(G1(x=position[0], y=position[1], z=position[2], f=tool_options.finishing_feed_rate))
 
-        commands.append(Comment('Final pass at full depth'))
+        commands.append(GCode('Final pass at full depth'))
         for travel in travels:
             position[0] += travel[0]
             position[1] += travel[1]

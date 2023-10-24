@@ -2,8 +2,8 @@
 GCode command objects which are exported by the various operations.
 
 Classes:
-- Comment
-  - Prints a line, starting with a semicolon, with text following it.
+- GCode
+  - Prints a line, starting with a semicolon, with text comment following it.
 - M2
   - Prints an M2 command to stop the machine spindle.
 - M3
@@ -34,9 +34,9 @@ from dataclasses import dataclass
 
 
 @dataclass
-class Comment:
+class GCode:
     """
-    A comment in a GCode file.
+    An empty line with a comment in a GCode file.
 
     Attributes:
         comment (str): An optional comment to print at the end of the line.
@@ -51,7 +51,7 @@ class Comment:
 
 
 @dataclass
-class M2(Comment):
+class M2(GCode):
     """
     An M2 command to stop the machine spindle.
 
@@ -65,7 +65,7 @@ class M2(Comment):
 
 
 @dataclass
-class M3(Comment):
+class M3(GCode):
     """
     An M3 command to start the machine spindle.
 
@@ -83,7 +83,7 @@ class M3(Comment):
 
 
 @dataclass
-class M5(Comment):
+class M5(GCode):
     """
     An M2 command to end the GCode program.
 
@@ -97,7 +97,7 @@ class M5(Comment):
 
 
 @dataclass
-class G0(Comment):
+class G0(GCode):
     """
     G0 command to rapidly move the tool to a given location.
 
@@ -226,7 +226,7 @@ class G3(G2):
         return self._format_arc('G3', output_options)
 
 
-class G80(Comment):
+class G80(GCode):
     """
     G80 command to finish a canned cycle.
 
@@ -325,7 +325,7 @@ class G83(G81):
 
 
 @dataclass
-class CyclePosition(Comment):
+class CyclePosition(GCode):
     """
     A command for a position in a canned cycle.
 

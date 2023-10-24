@@ -11,7 +11,7 @@ from copy import deepcopy
 
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import rapid_with_z_hop, helical_plunge, spiral_out
-from conversational_gcode.gcodes.GCodes import Comment, G0, G1, G2
+from conversational_gcode.gcodes.GCodes import GCode, G0, G1, G2
 from conversational_gcode.transform.Transformation import Transformation
 from conversational_gcode.Jsonable import Jsonable
 
@@ -188,7 +188,7 @@ class RectangularPocket(Jsonable):
             clearing_radius = initial_clearing_radius
             position[2] = deepest_cut_depth
 
-            operation_commands.append(Comment('Clear out circle at edge of pocket'))
+            operation_commands.append(GCode('Clear out circle at edge of pocket'))
             # Helical interpolate to depth
             helical_plunge(pocket_clearing_centre, clearing_radius, step_plunge, position,
                            operation_commands, tool_options, precision)
@@ -252,7 +252,7 @@ class RectangularPocket(Jsonable):
         precision = options.output.position_precision
         tool_options = options.tool
 
-        operation_commands.append(Comment('Clear nearest corners'))
+        operation_commands.append(GCode('Clear nearest corners'))
         br_corner_commands = []
         radial_distance_to_corner = final_clearing_radius * (sqrt(2) - 1)
         bottom_corner_radial_stepover = radial_distance_to_corner / ceil(radial_distance_to_corner / tool_options.max_stepover)
@@ -309,13 +309,13 @@ class RectangularPocket(Jsonable):
 
             last_cartesian_cut_engagement = total_cartesian_cut_engagement
 
-        operation_commands.append(Comment('Clear first corner'))
+        operation_commands.append(GCode('Clear first corner'))
         operation_commands.extend(br_corner_commands)
-        operation_commands.append(Comment('Clear second corner'))
+        operation_commands.append(GCode('Clear second corner'))
 
-        corner_commands = [Comment('Clear first corner')]
+        corner_commands = [GCode('Clear first corner')]
         corner_commands.extend(br_corner_commands)
-        corner_commands.append(Comment('Clear second corner'))
+        corner_commands.append(GCode('Clear second corner'))
         rotation = Transformation(
             [
                 lambda x, y, z: (y + pocket_clearing_centre[0] - pocket_clearing_centre[1]) if y is not None else None,
@@ -345,7 +345,7 @@ class RectangularPocket(Jsonable):
         precision = options.output.position_precision
         tool_options = options.tool
 
-        operation_commands.append(Comment('Clear furthest corners'))
+        operation_commands.append(GCode('Clear furthest corners'))
 
         total_arc_distance = pocket_clearing_size[1] - 2 * final_clearing_radius
         if isclose(total_arc_distance, 0, abs_tol=pow(10, -precision)):
@@ -422,15 +422,15 @@ class RectangularPocket(Jsonable):
         tool_options = options.tool
         precision = options.output.position_precision
 
-        operation_commands.append(Comment('Clear far corners'))
+        operation_commands.append(GCode('Clear far corners'))
 
         tl_corner_commands = []
         tr_corner_commands_and_positions = []
 
-        tl_corner_commands.append(Comment('First far corner'))
+        tl_corner_commands.append(GCode('First far corner'))
         tr_corner_commands_and_positions.append([
             [None, None, None],
-            lambda x, y, z: Comment('Second far corner')
+            lambda x, y, z: GCode('Second far corner')
         ])
 
         final_arcing_radius = pocket_clearing_size[1] - final_clearing_radius
@@ -539,7 +539,7 @@ class RectangularPocket(Jsonable):
     def _create_finishing_pass(self, centre, pocket_final_size, position, operation_commands, options):
         tool_options = options.tool
 
-        operation_commands.append(Comment(f'{tool_options.finishing_pass}mm finishing pass'))
+        operation_commands.append(GCode(f'{tool_options.finishing_pass}mm finishing pass'))
 
         # Feed into cut
         position[0] = centre[0] + pocket_final_size[0] / 2
