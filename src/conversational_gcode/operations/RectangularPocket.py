@@ -12,7 +12,7 @@ from copy import deepcopy
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import rapid_with_z_hop, helical_plunge, spiral_out
 from conversational_gcode.gcodes.GCodes import Comment, G0, G1, G2
-from conversational_gcode.transform.Rotation import Rotation
+from conversational_gcode.transform.Transformation import Transformation
 from conversational_gcode.Jsonable import Jsonable
 
 
@@ -223,7 +223,7 @@ class RectangularPocket(Jsonable):
             position[1] = -position[0]
             for command in operation_commands:
                 command.transform(
-                    Rotation(
+                    Transformation(
                         [
                             lambda x, y, z: (y + centre[0] - centre[1]) if y is not None else None,
                             lambda x, y, z: (centre[0] + centre[1] - x) if x is not None else None,
@@ -316,7 +316,7 @@ class RectangularPocket(Jsonable):
         corner_commands = [Comment('Clear first corner')]
         corner_commands.extend(br_corner_commands)
         corner_commands.append(Comment('Clear second corner'))
-        rotation = Rotation(
+        rotation = Transformation(
             [
                 lambda x, y, z: (y + pocket_clearing_centre[0] - pocket_clearing_centre[1]) if y is not None else None,
                 lambda x, y, z: (pocket_clearing_centre[0] + pocket_clearing_centre[1] - x) if x is not None else None,
@@ -350,7 +350,7 @@ class RectangularPocket(Jsonable):
         total_arc_distance = pocket_clearing_size[1] - 2 * final_clearing_radius
         if isclose(total_arc_distance, 0, abs_tol=pow(10, -precision)):
             # Repeat existing corner commands
-            rotation = Rotation(
+            rotation = Transformation(
                 [
                     lambda x, y, z: (y + pocket_clearing_centre[0] - pocket_clearing_centre[1]) if y is not None else None,
                     lambda x, y, z: (pocket_clearing_centre[0] + pocket_clearing_centre[1] - x) if x is not None else None,
