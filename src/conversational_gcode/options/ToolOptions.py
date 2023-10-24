@@ -1,8 +1,19 @@
+"""
+Options related to the tool.
+
+Classes:
+- ToolOptions
+  - Options for a cutting tool.
+"""
+
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.Jsonable import Jsonable
 
 
 class ToolOptions(Jsonable):
+    """
+    Options for a cutting tool.
+    """
 
     def __init__(self,
                  tool_flutes: int = 4,
@@ -22,6 +33,25 @@ class ToolOptions(Jsonable):
                  finishing_feed_rate: float = None,
                  finishing_climb: bool = True
                  ):
+        """
+        Initialise the options.
+        :param tool_flutes: Number of flutes on the tool. Defaults to 2mm.
+        :param tool_diameter: Diameter of the tool. Defaults to 6mm.
+        :param spindle_speed: Speed of the spindle. Defaults to 1000RPM.
+        :param feed_rate: Rate at which to feed the tool while cutting. Defaults to 100mm per minute.
+        :param max_stepover: Maximum tool stepover while cutting. Defaults to 2mm.
+        :param max_stepdown: Maximum tool step down while cutting. Defaults to 3mm.
+        :param max_helix_stepover: Maximum tool stepover while cutting in a helix. Defaults to 2mm.
+        :param helix_feed_rate: Rate at which to feed the tool while cutting a helix. Defaults to None to match the
+            normal feed rate.
+        :param max_helix_angle: Maximum angle at which to plunge the tool while cutting a helix. Defaults to 3 degrees.
+        :param finishing_pass: The stepover when cutting a finishing pass at the end of a job.
+            Defaults to None to indicate no finishing pass.
+        :param finishing_feed_rate: Rate at which to feed the tool while cutting a finishing pass. Defaults to None
+            to match the normal feed rate.
+        :param finishing_climb: Whether to cut the finishing pass as a climb cut or conventional cut. Defaults to False
+            to indicate a conventional cut direction.
+        """
         self._tool_flutes = tool_flutes
         self._tool_diameter = tool_diameter
 

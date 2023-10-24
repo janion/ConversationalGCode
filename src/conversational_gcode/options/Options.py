@@ -1,3 +1,11 @@
+"""
+Options for GCode generation.
+
+Classes:
+- Options
+  - Options for GCode generation. Contains sub-objects for more specific options.
+"""
+
 from conversational_gcode.options.ToolOptions import ToolOptions
 from conversational_gcode.options.JobOptions import JobOptions
 from conversational_gcode.options.OutputOptions import OutputOptions
@@ -6,8 +14,19 @@ from conversational_gcode.Jsonable import Jsonable
 
 
 class Options(Jsonable):
+    """
+    Options for GCode generation. Contains sub-objects for more specific options.
+    """
 
     def __init__(self, tool: ToolOptions, job: JobOptions, output: OutputOptions):
+        """
+        Initialise the options.
+
+        This will throw a ValueError if any argument is None.
+        :param tool: ToolOptiopns defining options for a cutting tool.
+        :param job: JobOptions for defining options for the whole job.
+        :param output: OutputOptions for defining options relating to printing the GCode.
+        """
         if tool is None:
             raise ValueError('Tool options must be populated')
         elif job is None:

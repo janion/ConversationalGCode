@@ -30,7 +30,7 @@ class CircularProfile(Jsonable):
         """
         Initialise the pocket operation.
         :param centre: [X, Y] location of the profile centre. Defaults to [0, 0].
-        :param start_depth: The Z-axis depth at which the profile starts. Defaults to 0.
+        :param start_depth: The Z-axis depth at which the profile starts. Defaults to 0mm.
         :param diameter: The diameter of the profile. Defaults to 10mm.
         :param depth: The depth of the profile below the start depth. Defaults to 10mm.
         :param is_inner: True if this operation is to cut an inside profile, False if to cut an outside profile.

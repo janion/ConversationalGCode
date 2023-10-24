@@ -29,7 +29,7 @@ class Drill(Jsonable):
         Initialise the drill operation.
         :param centres: List of (X, Y) coordinates of the hole centres. Defaults to an empty list.
         :param depth: Depth of the holes. Defaults to 3mm
-        :param start_depth: Start depth of the holes. Defaults to 0.
+        :param start_depth: Start depth of the holes. Defaults to 0mm.
         :param peck_interval: Distance after which a peck retraction should be performed. Defaults to None for no
             pecking.
         :param dwell: Time to dwell at the bottom of each hole, in milliseconds. defaults to None for no dwell.

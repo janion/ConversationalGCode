@@ -39,10 +39,10 @@ class RectangularProfile(Jsonable):
         :param centre: [X, Y] location of the profile centre. Defaults to [0, 0] if centre and corner not set.
         :param corner: [X, Y] location of the minimum X and Y corner of the profile,
             bottom left if X axis is left to right, and Y axis is near to far. Defaults to None.
-        :param start_depth: The Z axis depth at which the profile starts. Defaults to 0.
+        :param start_depth: The Z axis depth at which the profile starts. Defaults to 0mm.
         :param is_inner: True if this operation is to cut an inside profile, False if to cut an outside profile.
             Defaults to True.
-        :param is_climb: True if this operation is to climb vut the profile, False if to cut conventionally. Defaults
+        :param is_climb: True if this operation is to climb cut the profile, False if to cut conventionally. Defaults
             to False.
         """
         self._width = width

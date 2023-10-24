@@ -41,8 +41,9 @@ class RectangularPocket(Jsonable):
         :param centre: [X, Y] location of the pocket centre. Defaults to [0, 0] if centre and corner not set.
         :param corner: [X, Y] location of the minimum X and Y corner of the pocket,
             bottom left if X axis is left to right, and Y axis is near to far. Defaults to None.
-        :param start_depth: The Z axis depth at which the pocket starts. Defaults to 0.
-        :param finishing_pass: True if this operation includes a finishing pass. Defaults to False.
+        :param start_depth: The Z axis depth at which the pocket starts. Defaults to 0mm.
+        :param finishing_pass: True if this operation includes a finishing pass. Defaults to False to indicate no
+            finishing pass.
         """
         self._width = width
         self._length = length
