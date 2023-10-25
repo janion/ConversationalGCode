@@ -45,7 +45,7 @@ if __name__ == '__main__':
     # gcode_generator.add_operation(RectangularPocket(centre=[10, 10], width=32, length=22, depth=0.5))
 
     # gcode_generator.add_operation(RectangularPocket(centre=[0, 0], width=70, length=40, depth=2, finishing_pass=True))
-    # gcode_generator.add_operation(RectangularPocket(centre=[10, 10], width=32, length=22, depth=2, finishing_pass=True))
+    gcode_generator.add_operation(RectangularPocket(centre=[10, 10], width=32, length=22, depth=2, finishing_pass=True))
 
     # gcode_generator.add_operation(RectangularProfile(centre=[10, 10], width=32, length=22, depth=2, is_inner=False))
 

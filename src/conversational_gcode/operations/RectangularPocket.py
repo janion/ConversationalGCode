@@ -252,10 +252,11 @@ class RectangularPocket(Jsonable):
         precision = options.output.position_precision
         tool_options = options.tool
 
-        operation_commands.append(GCode('Clear nearest corners'))
         br_corner_commands = []
         radial_distance_to_corner = final_clearing_radius * (sqrt(2) - 1)
         bottom_corner_radial_stepover = radial_distance_to_corner / ceil(radial_distance_to_corner / tool_options.max_stepover)
+
+        operation_commands.append(GCode(f'Clear nearest corners in {bottom_corner_radial_stepover}mm passes'))
 
         # Clear bottom-right corner
         br_corner_commands.extend(
@@ -345,10 +346,10 @@ class RectangularPocket(Jsonable):
         precision = options.output.position_precision
         tool_options = options.tool
 
-        operation_commands.append(GCode('Clear furthest corners'))
 
         total_arc_distance = pocket_clearing_size[1] - 2 * final_clearing_radius
         if isclose(total_arc_distance, 0, abs_tol=pow(10, -precision)):
+            operation_commands.append(GCode('Clear furthest corners'))
             # Repeat existing corner commands
             rotation = Transformation(
                 [
@@ -371,6 +372,7 @@ class RectangularPocket(Jsonable):
             return
 
         arcing_stepover = total_arc_distance / ceil(total_arc_distance / tool_options.max_stepover)
+        operation_commands.append(GCode(f'Clear furthest corners in {arcing_stepover}mm passes'))
 
         # Move to start position
         operation_commands.extend(
@@ -422,7 +424,11 @@ class RectangularPocket(Jsonable):
         tool_options = options.tool
         precision = options.output.position_precision
 
-        operation_commands.append(GCode('Clear far corners'))
+        final_arcing_radius = pocket_clearing_size[1] - final_clearing_radius
+        radial_distance_to_corner = sqrt(final_arcing_radius * final_arcing_radius + final_clearing_radius * final_clearing_radius) - final_arcing_radius
+        radial_stepover = radial_distance_to_corner / ceil(radial_distance_to_corner / tool_options.max_stepover)
+
+        operation_commands.append(GCode(f'Clear far corners in {radial_stepover}mm passes'))
 
         tl_corner_commands = []
         tr_corner_commands_and_positions = []
@@ -432,10 +438,6 @@ class RectangularPocket(Jsonable):
             [None, None, None],
             lambda x, y, z: GCode('Second far corner')
         ])
-
-        final_arcing_radius = pocket_clearing_size[1] - final_clearing_radius
-        radial_distance_to_corner = sqrt(final_arcing_radius * final_arcing_radius + final_clearing_radius * final_clearing_radius) - final_arcing_radius
-        radial_stepover = radial_distance_to_corner / ceil(radial_distance_to_corner / tool_options.max_stepover)
 
         # Move to start position
         tl_corner_commands.extend(

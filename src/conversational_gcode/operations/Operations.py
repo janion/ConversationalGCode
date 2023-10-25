@@ -119,7 +119,7 @@ def spiral_out(
         (final_path_radius - tool_options.max_helix_stepover) / tool_options.max_stepover))
     path_radius = current_radius
 
-    commands.append(GCode('Spiral out to final radius'))
+    commands.append(GCode(f'Spiral out to final radius in {radial_stepover}mm passes'))
     while not isclose(path_radius, final_path_radius, abs_tol=pow(10, -precision)):
         # Semicircle out increasing radius
         path_radius += radial_stepover / 2
