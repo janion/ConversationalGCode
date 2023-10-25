@@ -57,3 +57,5 @@ if __name__ == '__main__':
 
     for command in commands:
         print(command.format(output_options))
+
+    # OutputOptions(**json.loads(json.dumps(dict(oo))))

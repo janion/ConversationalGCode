@@ -8,6 +8,8 @@ Classes:
   - Iterates through configured operations and collates the GCode commands.
 """
 
+import json
+
 from conversational_gcode.options.OutputOptions import OutputOptions
 from conversational_gcode.options.Options import Options
 from conversational_gcode.validate.validation_result import ValidationResult
@@ -93,6 +95,9 @@ class GcodeGenerator:
             position = [0, 0, 0]
         # commands = CommandPrinter(self._options.output)
         commands = []
+
+        for line in json.dumps(dict(self._options), indent=2).split('\n'):
+            commands.append(GCode(line))
 
         position[2] = self._options.job.clearance_height
         commands.append(G0(z=position[2], comment='Clear tool'))
