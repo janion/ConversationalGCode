@@ -116,10 +116,10 @@ def spiral_out(
     :param precision: Positional precision to use.
     """
     radial_stepover = (final_path_radius - current_radius) / max(1, ceil(
-        (final_path_radius - tool_options.max_helix_stepover) / tool_options.max_stepover))
+        (final_path_radius - current_radius) / tool_options.max_stepover))
     path_radius = current_radius
 
-    commands.append(GCode(f'Spiral out to final radius in {radial_stepover}mm passes'))
+    commands.append(GCode(f'Spiral out to final radius in {radial_stepover:.{precision}f}mm passes'))
     while not isclose(path_radius, final_path_radius, abs_tol=pow(10, -precision)):
         # Semicircle out increasing radius
         path_radius += radial_stepover / 2
@@ -127,6 +127,44 @@ def spiral_out(
         commands.append(G2(x=position[0], y=position[1], i=-path_radius, f=tool_options.feed_rate))
         # Semi circle maintaining radius
         path_radius += radial_stepover / 2
+        position[0] += path_radius * 2
+        commands.append(G2(x=position[0], y=position[1], i=path_radius, f=tool_options.feed_rate))
+    # Complete circle at final radius
+    position[0] -= path_radius * 2
+    commands.append(
+        G2(x=position[0], y=position[1], i=-path_radius, f=tool_options.feed_rate, comment='Complete circle at final radius'))
+
+
+def spiral_in(
+        current_radius: float,
+        final_path_radius: float,
+        position: list[float],
+        commands: list,
+        tool_options: ToolOptions,
+        precision: float):
+    """
+    Spiral in from a given location to a final diameter.
+
+    Assumes that it is following a helical plunge at an initial radius.
+    :param current_radius: Radius of the current path.
+    :param final_path_radius: Target radius of the final path.
+    :param position: current position of the tool. To be mutated to keep up to date.
+    :param commands: List of GCode commands to which to add.
+    :param tool_options: Options for the tool.
+    :param precision: Positional precision to use.
+    """
+    radial_stepover = (current_radius - final_path_radius) / max(1, ceil(
+        (current_radius - final_path_radius) / tool_options.max_stepover))
+    path_radius = current_radius
+
+    commands.append(GCode(f'Spiral in to final radius in {radial_stepover:.{precision}f}mm passes'))
+    while not isclose(path_radius, final_path_radius, abs_tol=pow(10, -precision)):
+        # Semicircle in decreasing radius
+        path_radius -= radial_stepover / 2
+        position[0] -= path_radius * 2
+        commands.append(G2(x=position[0], y=position[1], i=-path_radius, f=tool_options.feed_rate))
+        # Semi circle maintaining radius
+        path_radius -= radial_stepover / 2
         position[0] += path_radius * 2
         commands.append(G2(x=position[0], y=position[1], i=path_radius, f=tool_options.feed_rate))
     # Complete circle at final radius

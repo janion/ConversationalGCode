@@ -205,7 +205,7 @@ class RectangularPocket(Jsonable):
             self._clear_centre(pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options)
 
             # Clear far corners
-            self._clear_far_corners(pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options)
+            self._clear_far_corners(pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, position, operation_commands, options)
 
             if not isclose(deepest_cut_depth, final_depth, abs_tol=pow(10, -precision)):
                 # Clear wall
@@ -256,7 +256,7 @@ class RectangularPocket(Jsonable):
         radial_distance_to_corner = final_clearing_radius * (sqrt(2) - 1)
         bottom_corner_radial_stepover = radial_distance_to_corner / ceil(radial_distance_to_corner / tool_options.max_stepover)
 
-        operation_commands.append(GCode(f'Clear nearest corners in {bottom_corner_radial_stepover}mm passes'))
+        operation_commands.append(GCode(f'Clear nearest corners in {bottom_corner_radial_stepover:.{precision}f}mm passes'))
 
         # Clear bottom-right corner
         br_corner_commands.extend(
@@ -346,7 +346,6 @@ class RectangularPocket(Jsonable):
         precision = options.output.position_precision
         tool_options = options.tool
 
-
         total_arc_distance = pocket_clearing_size[1] - 2 * final_clearing_radius
         if isclose(total_arc_distance, 0, abs_tol=pow(10, -precision)):
             operation_commands.append(GCode('Clear furthest corners'))
@@ -372,7 +371,7 @@ class RectangularPocket(Jsonable):
             return
 
         arcing_stepover = total_arc_distance / ceil(total_arc_distance / tool_options.max_stepover)
-        operation_commands.append(GCode(f'Clear furthest corners in {arcing_stepover}mm passes'))
+        operation_commands.append(GCode(f'Clear furthest corners in {arcing_stepover:.{precision}f}mm passes'))
 
         # Move to start position
         operation_commands.extend(
@@ -420,7 +419,7 @@ class RectangularPocket(Jsonable):
 
             last_cartesian_stepover = total_cartesian_stepover
 
-    def _clear_far_corners(self, pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options):
+    def _clear_far_corners(self, pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, position, operation_commands, options):
         tool_options = options.tool
         precision = options.output.position_precision
 
@@ -428,7 +427,7 @@ class RectangularPocket(Jsonable):
         radial_distance_to_corner = sqrt(final_arcing_radius * final_arcing_radius + final_clearing_radius * final_clearing_radius) - final_arcing_radius
         radial_stepover = radial_distance_to_corner / ceil(radial_distance_to_corner / tool_options.max_stepover)
 
-        operation_commands.append(GCode(f'Clear far corners in {radial_stepover}mm passes'))
+        operation_commands.append(GCode(f'Clear far corners in {radial_stepover:.{precision}f}mm passes'))
 
         tl_corner_commands = []
         tr_corner_commands_and_positions = []
@@ -540,8 +539,9 @@ class RectangularPocket(Jsonable):
 
     def _create_finishing_pass(self, centre, pocket_final_size, position, operation_commands, options):
         tool_options = options.tool
+        precision = options.output.position_precision
 
-        operation_commands.append(GCode(f'{tool_options.finishing_pass}mm finishing pass'))
+        operation_commands.append(GCode(f'{tool_options.finishing_pass:.{precision}f}mm finishing pass'))
 
         # Feed into cut
         position[0] = centre[0] + pocket_final_size[0] / 2
