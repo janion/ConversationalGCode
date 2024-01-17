@@ -321,7 +321,7 @@ class G83(G81):
         i = f' I{self.i:.{position_precision}f}'
         feed = f' F{self.f:.{feed_precision}f}'
         end = ';' if self.comment is None else f'; {self.comment}'
-        return f'G82{x_pos}{y_pos}{z_pos}{r}{i}{feed}{end}'
+        return f'G83{x_pos}{y_pos}{z_pos}{r}{i}{feed}{end}'
 
 
 @dataclass
