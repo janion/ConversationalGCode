@@ -52,9 +52,6 @@ class Drill(Jsonable):
             results.append(ValidationResult(False, 'Drill peck interval must be None, zero or positive'))
         if self._dwell is not None and self._dwell < 0:
             results.append(ValidationResult(False, 'Drill dwell must be None, zero or positive'))
-
-        if self._peck_interval is not None and self._peck_interval > 0 and self._dwell is not None and self._dwell > 0:
-            results.append(ValidationResult(False, 'No drilling operation supports both pecking and a dwell. Please choose one or none.'))
         
         if len(results) == 0:
             results.append(ValidationResult())
@@ -108,7 +105,7 @@ class Drill(Jsonable):
 
         if self._peck_interval is not None and self._peck_interval > 0:
             def drill_command(x, y, r, f, comment=None):
-                return G83(x=x, y=y, z=self._start_depth - self._depth, r=r, i=self._peck_interval, f=f, comment=comment)
+                return G83(x=x, y=y, z=self._start_depth - self._depth, r=r, q=self._peck_interval, p=self._dwell, f=f, comment=comment)
         elif self._dwell is not None and self._dwell > 0:
             def drill_command(x, y, r, f, comment=None):
                 return G82(x=x, y=y, z=self._start_depth - self._depth, r=r, p=self._dwell, f=f, comment=comment)

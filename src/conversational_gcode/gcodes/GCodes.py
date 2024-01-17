@@ -296,7 +296,7 @@ class G82(G81):
 
 
 @dataclass
-class G83(G81):
+class G83(G82):
     """
     G83 command to feed the tool to start a canned cycle for peck drilling.
 
@@ -305,11 +305,12 @@ class G83(G81):
         y (float): The Y-axis location to which to drill the first hole.
         z (float): The Z-axis depth of the holes.
         r (float): The retraction height to pull back to between holes.
-        i (float): The distance at which a peck retraction should be performed.
+        q (float): The distance at which a peck retraction should be performed.
+        p (float): The dwell time at the bottom of the hole, in milliseconds. Optional.
         f (float): The feed rate at which to advance the drill.
         comment (str): An optional comment to print at the end of the line.
     """
-    i: float = None  # mm
+    q: float = None  # mm
 
     def format(self, output_options):
         position_precision = output_options.position_precision
@@ -318,10 +319,11 @@ class G83(G81):
         y_pos = f' Y{self.y:.{position_precision}f}'
         z_pos = f' Z{self.z:.{position_precision}f}'
         r = f' R{self.r:.{position_precision}f}'
-        i = f' I{self.i:.{position_precision}f}'
+        q = f' Q{self.q:.{position_precision}f}'
+        p = f' P{self.p:.{position_precision}f}' if self.p is not None else ''
         feed = f' F{self.f:.{feed_precision}f}'
         end = ';' if self.comment is None else f'; {self.comment}'
-        return f'G83{x_pos}{y_pos}{z_pos}{r}{i}{feed}{end}'
+        return f'G83{x_pos}{y_pos}{z_pos}{r}{q}{p}{feed}{end}'
 
 
 @dataclass
