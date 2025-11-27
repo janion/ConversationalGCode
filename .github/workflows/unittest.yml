@@ -16,8 +16,5 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-      - name: Navigate to tests folder
-        run: |
-          cd tests
       - name: Test
         uses: onichandame/python-test-action@master
