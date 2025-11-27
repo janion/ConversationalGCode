@@ -1,6 +1,4 @@
-from unittest import TestCase
-
-from conversational_gcode.validation_asserter import ValidationAsserter
+from validation_asserter import ValidationAsserter
 from conversational_gcode.options.JobOptions import JobOptions
 
 

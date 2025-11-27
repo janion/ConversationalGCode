@@ -10,3 +10,10 @@ A small project to allow for simple GCode operations to be generated without the
 - [X] Milling circular profiles
 - [ ] Chamfering circular pockets
 - [ ] Chamfering rectangular pockets
+
+## Tests
+Install package:
+```python -m pip install -e .```
+
+Run tests using:
+```python -m unittest discover -s tests```
