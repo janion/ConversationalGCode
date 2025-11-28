@@ -24,9 +24,7 @@ jobs:
           echo "Current Directory Contents:"
           echo "import os; print(os.listdir())" | python
           echo "Try to import package:"
-          echo "import conversation_gcode" | python
-          echo "Try to import nonsense package:"
-          echo "import definitely_not_a_package" | python
+          echo "import conversational_gcode" | python
       - name: Test
         uses: onichandame/python-test-action@v1
         with:
