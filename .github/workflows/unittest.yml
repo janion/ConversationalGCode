@@ -25,17 +25,9 @@ jobs:
           echo "import os; print(os.listdir())" | python
           echo "Try to import package:"
           echo "from conversational_gcode.options.JobOptions import JobOptions" | python
-      - name: Python 3
+      - name: Run tests manually
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install -e .
-          echo
-          echo "Current Directory:"
-          echo "import os; print(os.getcwd())" | python3
-          echo "Current Directory Contents:"
-          echo "import os; print(os.listdir())" | python3
-          echo "Try to import package:"
-          echo "from conversational_gcode.options.JobOptions import JobOptions" | python3
+          python -m unittest discover -s tests
       - name: Test
         uses: onichandame/python-test-action@v1
         with:
