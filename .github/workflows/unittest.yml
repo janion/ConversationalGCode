@@ -24,7 +24,7 @@ jobs:
           echo "Current Directory Contents:"
           echo "import os; print(os.listdir())" | python
           echo "Try to import package:"
-          echo "import conversational_gcode" | python
+          echo "from conversational_gcode.options.JobOptions import JobOptions" | python
       - name: Test
         uses: onichandame/python-test-action@v1
         with:
