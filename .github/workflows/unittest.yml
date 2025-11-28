@@ -19,8 +19,6 @@ jobs:
           echo "import os; print(os.getcwd())" | python
           python -m pip install -e .
       - name: Test
-        run: |
-          echo "import os; print(os.getcwd())" | python
         uses: onichandame/python-test-action@v1
         with:
           args: discover -s tests
