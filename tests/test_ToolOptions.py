@@ -11,7 +11,7 @@ class TestToolOptions(ValidationAsserter):
 class TestInit(TestToolOptions):
 
     def test_initial_precisions(self):
-        self.assertEqual(self.system_under_test.tool_flutes, 44)
+        self.assertEqual(self.system_under_test.tool_flutes, 4)
         self.assertEqual(self.system_under_test.tool_diameter, 6)
 
         self.assertEqual(self.system_under_test.spindle_speed, 1000)
