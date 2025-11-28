@@ -53,7 +53,7 @@ class RectangularProfile(Jsonable):
         self._corner = corner
         if centre is None and corner is None:
             self._centre = [0, 0]
-        
+
         self._start_depth = start_depth
         self._is_inner = is_inner
         self._is_climb = is_climb
@@ -66,6 +66,8 @@ class RectangularProfile(Jsonable):
             results.append(ValidationResult(False, 'Profile length must be positive and non-zero'))
         if self._depth is None or self._depth <= 0:
             results.append(ValidationResult(False, 'Profile depth must be positive and non-zero'))
+        if self._start_depth is None:
+            results.append(ValidationResult(False, 'Profile start depth must be specified'))
         if self._centre is None and self._corner is None:
             results.append(ValidationResult(False, 'Profile corner or centre coordinates must be specified'))
         if self._centre is not None and self._corner is not None:
@@ -196,10 +198,10 @@ class RectangularProfile(Jsonable):
                 position[0] += travel[0]
                 position[1] += travel[1]
                 position[2] += travel[2]
-                commands.append(G1(x=position[0], y=position[1], z=position[2], f=tool_options.finishing_feed_rate))
+                commands.append(G1(x=position[0], y=position[1], z=position[2], f=tool_options.feed_rate))
 
         commands.append(GCode('Final pass at full depth'))
         for travel in travels:
             position[0] += travel[0]
             position[1] += travel[1]
-            commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
+            commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))

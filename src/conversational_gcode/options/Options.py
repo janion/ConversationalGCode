@@ -23,7 +23,7 @@ class Options(Jsonable):
         Initialise the options.
 
         This will throw a ValueError if any argument is None.
-        :param tool: ToolOptiopns defining options for a cutting tool.
+        :param tool: ToolOptions defining options for a cutting tool.
         :param job: JobOptions for defining options for the whole job.
         :param output: OutputOptions for defining options relating to printing the GCode.
         """

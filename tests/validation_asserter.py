@@ -9,7 +9,7 @@ class ValidationAsserter(TestCase):
         self.assertEqual(len(results), 1)
         self.assertTrue(results[0].success)
 
-    def assertFailure(self, system_under_test, error_count: int, messages: list[str] = None):
+    def assertFailure(self, system_under_test, error_count: int = 1, messages: list[str] = None):
         """Assert that return from validate() method returns a list of failure items with the given messages."""
         results = system_under_test.validate()
         self.assertEqual(len(results), error_count)

@@ -10,7 +10,7 @@ class TestOutputOptions(ValidationAsserter):
 
 class TestInit(TestOutputOptions):
 
-    def test_initial_precisions(self):
+    def test_initial_values(self):
         self.assertEqual(self.system_under_test.position_precision, 3)
         self.assertEqual(self.system_under_test.feed_precision, 2)
         self.assertEqual(self.system_under_test.speed_precision, 1)
@@ -26,27 +26,27 @@ class TestValidation(TestOutputOptions):
         self.assertSuccess(self.system_under_test)
 
         self.system_under_test.position_precision = -1
-        self.assertFailure(self.system_under_test, 1)
+        self.assertFailure(self.system_under_test)
 
         self.system_under_test.position_precision = None
-        self.assertFailure(self.system_under_test, 1)
+        self.assertFailure(self.system_under_test)
 
     def test_validation_feed_precision(self):
         self.system_under_test.feed_precision = 0
         self.assertSuccess(self.system_under_test)
 
         self.system_under_test.feed_precision = -1
-        self.assertFailure(self.system_under_test, 1)
+        self.assertFailure(self.system_under_test)
 
         self.system_under_test.feed_precision = None
-        self.assertFailure(self.system_under_test, 1)
+        self.assertFailure(self.system_under_test)
 
     def test_validation_speed_precision(self):
         self.system_under_test.speed_precision = 0
         self.assertSuccess(self.system_under_test)
 
         self.system_under_test.speed_precision = -1
-        self.assertFailure(self.system_under_test, 1)
+        self.assertFailure(self.system_under_test)
 
         self.system_under_test.speed_precision = None
-        self.assertFailure(self.system_under_test, 1)
+        self.assertFailure(self.system_under_test)
