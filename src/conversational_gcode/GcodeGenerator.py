@@ -66,7 +66,8 @@ class GcodeGenerator:
     def _validate(self) -> list[ValidationResult]:
         """
         Validate the operations and options.
-        :return: List of ValidationResults. Contains only 1 item if every option and operation is valid.
+        :return: List of ValidationResults.
+        Contains only 1 item if every option and operation is valid.
         """
         results = []
         results.extend(self._options.validate())

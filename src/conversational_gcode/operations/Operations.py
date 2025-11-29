@@ -17,9 +17,15 @@ from conversational_gcode.options.ToolOptions import ToolOptions
 from conversational_gcode.gcodes.GCodes import GCode, G0, G2, G3
 
 
-def rapid_with_z_hop(position: list[float], new_position: list[float], job_options: JobOptions, comment: str = None):
+def rapid_with_z_hop(
+        position: list[float],
+        new_position: list[float],
+        job_options: JobOptions,
+        comment: str = None
+):
     """
-    A rapid move in a triangular path to prevent dragging the tool on the previously cut surface. This splits the path
+    A rapid move in a triangular path to prevent dragging the tool on the previously cut surface.
+    This splits the path
     in half to make the move symmetrical.
     :param position: Start position from which to move.
     :param new_position: End position to which to move.
@@ -36,7 +42,9 @@ def rapid_with_z_hop(position: list[float], new_position: list[float], job_optio
     rapid_positions = []
     rapid_commands = []
     rapid_positions.append(mid_position)
-    rapid_commands.append(G0(x=mid_position[0], y=mid_position[1], z=mid_position[2], comment=comment))
+    rapid_commands.append(
+        G0(x=mid_position[0], y=mid_position[1], z=mid_position[2], comment=comment)
+    )
     rapid_positions.append(new_position)
     rapid_commands.append(G0(x=new_position[0], y=new_position[1], z=new_position[2]))
 
@@ -119,7 +127,9 @@ def spiral_out(
         (final_path_radius - current_radius) / tool_options.max_stepover))
     path_radius = current_radius
 
-    commands.append(GCode(f'Spiral out to final radius in {radial_stepover:.{precision}f}mm passes'))
+    commands.append(
+        GCode(f'Spiral out to final radius in {radial_stepover:.{precision}f}mm passes')
+    )
     while not isclose(path_radius, final_path_radius, abs_tol=pow(10, -precision)):
         # Semicircle out increasing radius
         path_radius += radial_stepover / 2

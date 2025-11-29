@@ -15,12 +15,20 @@ class OutputOptions(Jsonable):
     Options for printing the GCode.
     """
 
-    def __init__(self, position_precision: int = 3, feed_precision: int = 2, speed_precision: int = 1):
+    def __init__(
+            self,
+            position_precision: int = 3,
+            feed_precision: int = 2,
+            speed_precision: int = 1
+    ):
         """
         Initialise the options.
-        :param position_precision: The number of decimal places to which to print the position. Defaults to 3.
-        :param feed_precision:  The number of decimal places to which to print the feed rate. Defaults to 2.
-        :param speed_precision: The number of decimal places to which to print the spindle speed. Defaults to 1.
+        :param position_precision: The number of decimal places to which to print the position.
+        Defaults to 3.
+        :param feed_precision:  The number of decimal places to which to print the feed rate.
+        Defaults to 2.
+        :param speed_precision: The number of decimal places to which to print the spindle speed.
+        Defaults to 1.
         """
         self._position_precision = position_precision
         self._feed_precision = feed_precision

@@ -15,8 +15,8 @@ class Drill(Jsonable):
     """
     Operation to drill multiple holes in a canned cycle.
 
-    The holes are drilled by first starting the cycle at the location of the first hole, then moving around the other
-    hole locations, before finishing the cycle.
+    The holes are drilled by first starting the cycle at the location of the first hole, then moving
+    around the other hole locations, before finishing the cycle.
     """
 
     def __init__(self,
@@ -30,9 +30,10 @@ class Drill(Jsonable):
         :param centres: List of (X, Y) coordinates of the hole centres. Defaults to an empty list.
         :param depth: Depth of the holes. Defaults to 3mm
         :param start_depth: Start depth of the holes. Defaults to 0mm.
-        :param peck_interval: Distance after which a peck retraction should be performed. Defaults to None for no
-            pecking.
-        :param dwell: Time to dwell at the bottom of each hole, in milliseconds. defaults to None for no dwell.
+        :param peck_interval: Distance after which a peck retraction should be performed.
+        Defaults to None for no pecking.
+        :param dwell: Time to dwell at the bottom of each hole, in milliseconds.
+        Defaults to None for no dwell.
         """
         self._centres = [] if centres is None else centres
         self._depth = depth

@@ -18,8 +18,10 @@ class JobOptions(Jsonable):
     def __init__(self, clearance_height: float = 10, lead_in: float = 0.25):
         """
         Initialise the job options.
-        :param clearance_height: Height at which the tool is guaranteed to be clear of the work. Defaults to 10mm.
-        :param lead_in: Height above the work surface to start plunge operations. Defaults to 0.25mm.
+        :param clearance_height: Height at which the tool is guaranteed to be clear of the work.
+        Defaults to 10mm.
+        :param lead_in: Height above the work surface to start plunge operations.
+        Defaults to 0.25mm.
         """
         self._clearance_height = clearance_height
         self._lead_in = lead_in
