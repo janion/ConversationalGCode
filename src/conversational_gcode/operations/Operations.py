@@ -10,7 +10,7 @@ Functions:
   - Spiral out from a given location to a final diameter.
 """
 
-from math import pi, ceil, tan, pow, isclose
+from math import pi, ceil, tan, isclose
 
 from conversational_gcode.options.JobOptions import JobOptions
 from conversational_gcode.options.ToolOptions import ToolOptions

@@ -52,7 +52,7 @@ class Drill(Jsonable):
             results.append(ValidationResult(False, 'Drill peck interval must be None, zero or positive'))
         if self._dwell is not None and self._dwell < 0:
             results.append(ValidationResult(False, 'Drill dwell must be None, zero or positive'))
-        
+
         if len(results) == 0:
             results.append(ValidationResult())
 

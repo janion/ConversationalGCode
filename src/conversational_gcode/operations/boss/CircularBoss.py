@@ -6,7 +6,7 @@ Classes:
   - Operation to create a circular boss.
 """
 
-from math import ceil, pow, isclose
+from math import ceil, isclose
 
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import helical_plunge, spiral_in

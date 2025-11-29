@@ -6,7 +6,7 @@ Classes:
   - Operation to create a rectangular pocket.
 """
 
-from math import ceil, pow, isclose, sqrt
+from math import ceil,  isclose, sqrt
 from copy import deepcopy
 
 from conversational_gcode.validate.validation_result import ValidationResult

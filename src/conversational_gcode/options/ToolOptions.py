@@ -110,12 +110,12 @@ class ToolOptions(Jsonable):
                 results.append(ValidationResult(False, 'Finishing pass cannot be more than the tool diameter'))
             if self._finishing_pass > 0 and feed_rate_valid and (self.finishing_feed_rate is None or self.finishing_feed_rate <= 0):
                 results.append(ValidationResult(False, 'Finishing feed rate must be positive'))
-            if self._finishing_pass > 0 and type(self._finishing_climb) is not bool:
+            if self._finishing_pass > 0 and not isinstance(self._finishing_climb, bool):
                 results.append(ValidationResult(False, 'Finishing direction must be specified'))
 
         if len(results) == 0:
             results.append(ValidationResult())
-        
+
         return results
 
     def _set_tool_flutes(self, value):

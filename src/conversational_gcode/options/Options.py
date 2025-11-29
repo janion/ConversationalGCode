@@ -29,9 +29,9 @@ class Options(Jsonable):
         """
         if tool is None:
             raise ValueError('Tool options must be populated')
-        elif job is None:
+        if job is None:
             raise ValueError('Job options must be populated')
-        elif output is None:
+        if output is None:
             raise ValueError('Output options must be populated')
 
         self._tool = tool

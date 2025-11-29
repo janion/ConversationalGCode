@@ -6,7 +6,7 @@ Classes:
   - Operation to create a rectangular profile.
 """
 
-from math import ceil, tan, pi, isclose, pow
+from math import ceil, tan, pi, isclose
 
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.gcodes.GCodes import GCode, G0, G1
