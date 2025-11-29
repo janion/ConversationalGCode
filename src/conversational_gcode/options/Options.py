@@ -18,25 +18,22 @@ class Options(Jsonable):
     Options for GCode generation. Contains sub-objects for more specific options.
     """
 
-    def __init__(self, tool: ToolOptions, job: JobOptions, output: OutputOptions):
+    def __init__(
+            self,
+            tool: ToolOptions = None,
+            job: JobOptions = None,
+            output: OutputOptions = None
+    ):
         """
         Initialise the options.
 
-        This will throw a ValueError if any argument is None.
         :param tool: ToolOptions defining options for a cutting tool.
         :param job: JobOptions for defining options for the whole job.
         :param output: OutputOptions for defining options relating to printing the GCode.
         """
-        if tool is None:
-            raise ValueError('Tool options must be populated')
-        if job is None:
-            raise ValueError('Job options must be populated')
-        if output is None:
-            raise ValueError('Output options must be populated')
-
-        self._tool = tool
-        self._job = job
-        self._output = output
+        self._tool = tool if tool is not None else ToolOptions()
+        self._job = job if job is not None else JobOptions()
+        self._output = output if output is not None else OutputOptions()
 
     def validate(self):
         results = []

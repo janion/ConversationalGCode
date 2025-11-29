@@ -257,9 +257,9 @@ class G81(G1):
     def format(self, output_options):
         position_precision = output_options.position_precision
         feed_precision = output_options.feed_precision
-        x_pos = f' X{self.x:.{position_precision}f}'
-        y_pos = f' Y{self.y:.{position_precision}f}'
-        z_pos = f' Z{self.z:.{position_precision}f}'
+        x_pos = f' X{self.x:.{position_precision}f}' if self.x is not None else ''
+        y_pos = f' Y{self.y:.{position_precision}f}' if self.y is not None else ''
+        z_pos = f' Z{self.z:.{position_precision}f}' if self.z is not None else ''
         r = f' R{self.r:.{position_precision}f}'
         feed = f' F{self.f:.{feed_precision}f}'
         end = ';' if self.comment is None else f'; {self.comment}'
@@ -276,20 +276,20 @@ class G82(G81):
         y (float): The Y-axis location to which to drill the first hole.
         z (float): The Z-axis depth of the holes.
         r (float): The retraction height to pull back to between holes.
-        p (float): The dwell time at the bottom of the hole, in milliseconds.
+        p (int): The dwell time at the bottom of the hole, in milliseconds.
         f (float): The feed rate at which to advance the drill.
         comment (str): An optional comment to print at the end of the line.
     """
-    p: float = 0  # ms
+    p: int = None  # ms
 
     def format(self, output_options):
         position_precision = output_options.position_precision
         feed_precision = output_options.feed_precision
-        x_pos = f' X{self.x:.{position_precision}f}'
-        y_pos = f' Y{self.y:.{position_precision}f}'
-        z_pos = f' Z{self.z:.{position_precision}f}'
+        x_pos = f' X{self.x:.{position_precision}f}' if self.x is not None else ''
+        y_pos = f' Y{self.y:.{position_precision}f}' if self.y is not None else ''
+        z_pos = f' Z{self.z:.{position_precision}f}' if self.z is not None else ''
         r = f' R{self.r:.{position_precision}f}'
-        p = f' P{self.p:.{position_precision}f}'
+        p = f' P{self.p:d}'
         feed = f' F{self.f:.{feed_precision}f}'
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'G82{x_pos}{y_pos}{z_pos}{r}{p}{feed}{end}'
@@ -315,34 +315,38 @@ class G83(G82):
     def format(self, output_options):
         position_precision = output_options.position_precision
         feed_precision = output_options.feed_precision
-        x_pos = f' X{self.x:.{position_precision}f}'
-        y_pos = f' Y{self.y:.{position_precision}f}'
-        z_pos = f' Z{self.z:.{position_precision}f}'
+        x_pos = f' X{self.x:.{position_precision}f}' if self.x is not None else ''
+        y_pos = f' Y{self.y:.{position_precision}f}' if self.y is not None else ''
+        z_pos = f' Z{self.z:.{position_precision}f}' if self.z is not None else ''
         r = f' R{self.r:.{position_precision}f}'
         q = f' Q{self.q:.{position_precision}f}'
-        p = f' P{self.p:.{position_precision}f}' if self.p is not None else ''
+        p = f' P{self.p:d}' if self.p is not None else ' P0'
         feed = f' F{self.f:.{feed_precision}f}'
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'G83{x_pos}{y_pos}{z_pos}{r}{q}{p}{feed}{end}'
 
 
 @dataclass
-class CyclePosition(GCode):
+class CyclePosition(G0):
     """
     A command for a position in a canned cycle.
 
     Attributes:
         x (float): The X-axis location at which to drill.
         y (float): The Y-axis location at which to drill.
+        z (float): The Z-axis location at which to drill.
         comment (str): An optional comment to print at the end of the line.
     """
-    x: float = None  # mm
-    y: float = None  # mm
 
     def format(self, output_options):
         position_precision = output_options.position_precision
         x_pos = f'X{self.x:.{position_precision}f}' if self.x is not None else ''
-        spacer = ' ' if x_pos != '' else ''
+
+        spacer_xy = ' ' if x_pos != '' and self.y is not None else ''
         y_pos = f'Y{self.y:.{position_precision}f}' if self.y is not None else ''
+
+        spacer_yz = ' ' if (y_pos != '' or x_pos != '') and self.z is not None else ''
+        z_pos = f'Z{self.z:.{position_precision}f}' if self.z is not None else ''
+
         end = ';' if self.comment is None else f'; {self.comment}'
-        return f'{x_pos}{spacer}{y_pos}{end}'
+        return f'{x_pos}{spacer_xy}{y_pos}{spacer_yz}{z_pos}{end}'
