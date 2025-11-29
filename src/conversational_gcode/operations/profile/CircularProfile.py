@@ -9,10 +9,9 @@ Classes:
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import helical_plunge
 from conversational_gcode.gcodes.GCodes import GCode, G0
-from conversational_gcode.Jsonable import Jsonable
 
 
-class CircularProfile(Jsonable):
+class CircularProfile:
     """
     Operation to create a circular profile.
 
@@ -68,7 +67,7 @@ class CircularProfile(Jsonable):
         return results
 
     def _set_centre(self, value):
-        self._centre = value
+        self._centre = [0, 0] if value is None else value
 
     def _set_start_depth(self, value):
         self._start_depth = value
@@ -142,3 +141,15 @@ class CircularProfile(Jsonable):
         commands.append(G0(x=position[0], y=position[1], comment='Move to hole position'))
         position[2] = self._start_depth + job_options.lead_in
         commands.append(G0(z=position[2], comment='Move to hole start depth'))
+
+    def to_json(self):
+        return (
+                '{' +
+                f'"centre":[{self._centre[0]},{self._centre[1]}],' +
+                f'"start_depth":{self._start_depth},' +
+                f'"diameter":{self._depth},' +
+                f'"depth":{self._depth},' +
+                f'"is_inner":{str(self._is_inner).lower()},' +
+                f'"is_climb":{str(self._is_climb).lower()},' +
+                '}'
+        ).replace(',}', '}')

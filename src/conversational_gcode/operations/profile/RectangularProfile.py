@@ -10,10 +10,9 @@ from math import ceil, tan, pi, isclose
 
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.gcodes.GCodes import GCode, G0, G1
-from conversational_gcode.Jsonable import Jsonable
 
 
-class RectangularProfile(Jsonable):
+class RectangularProfile:
     """
     Operation to create a rectangular profile.
 
@@ -205,3 +204,17 @@ class RectangularProfile(Jsonable):
             position[0] += travel[0]
             position[1] += travel[1]
             commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
+
+    def to_json(self):
+        return (
+                '{' +
+                f'"width":{self._width},' +
+                f'"length":{self._length},' +
+                f'"depth":{self._depth},' +
+                f'"centre":[{self._centre[0]},{self._centre[1]}],' +
+                f'"corner":[{self._corner[0]},{self._corner[1]}],' +
+                f'"start_depth":{self._start_depth},' +
+                f'"is_inner":{str(self._is_inner).lower()},' +
+                f'"is_climb":{str(self._is_climb).lower()},' +
+                '}'
+        ).replace(',}', '}')

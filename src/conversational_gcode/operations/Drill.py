@@ -124,9 +124,10 @@ class Drill:
         commands.append(GCode(''))
 
     def to_json(self):
+        centres_list = ','.join([f'[{centre[0]},{centre[1]}]' for centre in self._centres])
         return (
             '{' +
-            f'"centres":[{",".join([str(centre) for centre in self._centres])}],' +
+            f'"centres":[{centres_list}],' +
             (f'"depth":{self._depth},' if self._depth is not None else '') +
             (f'"start_depth":{self._start_depth},' if self._start_depth is not None else '') +
             (f'"peck_interval":{self._peck_interval},' if self._peck_interval is not None else '') +
