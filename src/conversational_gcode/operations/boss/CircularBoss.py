@@ -11,10 +11,9 @@ from math import ceil, isclose
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import helical_plunge, spiral_in
 from conversational_gcode.gcodes.GCodes import GCode, G0, G2, G3
-from conversational_gcode.Jsonable import Jsonable
 
 
-class CircularBoss(Jsonable):
+class CircularBoss:
     """
     Operation to create a circular boss.
 
@@ -205,3 +204,15 @@ class CircularBoss(Jsonable):
         commands.append(
             finishing_command(x=position[0], y=position[1], i=relative_centre, f=tool_options.finishing_feed_rate,
                               comment='Complete circle at final radius'))
+
+    def to_json(self):
+        return (
+                '{' +
+                f'"centre":[{self._centre[0]},{self._centre[1]}],' +
+                f'"top_height":{self._top_height},' +
+                f'"initial_diameter":{self._initial_diameter},' +
+                f'"final_diameter":{self._final_diameter},' +
+                f'"height":{self._height},' +
+                f'"finishing_pass":{str(self._finishing_pass).lower()},' +
+                '}'
+        ).replace(',}', '}')

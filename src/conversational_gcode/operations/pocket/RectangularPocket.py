@@ -13,10 +13,9 @@ from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import rapid_with_z_hop, helical_plunge, spiral_out
 from conversational_gcode.gcodes.GCodes import GCode, G0, G1, G2
 from conversational_gcode.transform.Transformation import Transformation
-from conversational_gcode.Jsonable import Jsonable
 
 
-class RectangularPocket(Jsonable):
+class RectangularPocket:
     """
     Operation to create a rectangular pocket.
 
@@ -576,3 +575,16 @@ class RectangularPocket(Jsonable):
         position[1] = max(centre[1], position[1] - 1)
         position[2] += job_options.lead_in
         operation_commands.append(G0(x=position[0], y=position[1], z=position[2], comment='Clear wall'))
+
+    def to_json(self):
+        return (
+                '{' +
+                f'"width":{self._width},' +
+                f'"length":{self._length},' +
+                f'"depth":{self._depth},' +
+                f'"centre":[{self._centre[0]},{self._centre[1]}],' +
+                f'"corner":[{self._corner[0]},{self._corner[1]}],' +
+                f'"start_depth":{self._start_depth},' +
+                f'"finishing_pass":{str(self._finishing_pass).lower()},' +
+                '}'
+        ).replace(',}', '}')
