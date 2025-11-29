@@ -92,9 +92,9 @@ def helical_plunge(
     step_depth = position[2] - plunge_depth
 
     if is_inner == is_climb:
-        command = G2
-    else:
         command = G3
+    else:
+        command = G2
 
     while not isclose(position[2], step_depth, abs_tol=pow(10, -precision)) and position[2] > step_depth:
         position[2] = position[2] - plunge_per_rev
