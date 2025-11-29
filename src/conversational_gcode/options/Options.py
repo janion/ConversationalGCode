@@ -13,7 +13,7 @@ from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.Jsonable import Jsonable
 
 
-class Options(Jsonable):
+class Options:
     """
     Options for GCode generation. Contains sub-objects for more specific options.
 
@@ -52,6 +52,15 @@ class Options(Jsonable):
             results.append(ValidationResult())
 
         return results
+
+    def to_json(self):
+        return (
+                '{' +
+                f'"tool":{self.tool.to_json()},' +
+                f'"job":{self.job.to_json()},' +
+                f'"output":{self.output.to_json()}' +
+                '}'
+        )
 
     tool = property(fget=lambda self: self._tool)
     job = property(fget=lambda self: self._job)

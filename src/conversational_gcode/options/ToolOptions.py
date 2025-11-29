@@ -10,7 +10,7 @@ from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.Jsonable import Jsonable
 
 
-class ToolOptions(Jsonable):
+class ToolOptions:
     """
     Options for a cutting tool.
     """
@@ -155,6 +155,24 @@ class ToolOptions(Jsonable):
 
     def _set_finishing_climb(self, value):
         self._finishing_climb = value
+
+    def to_json(self):
+        return (
+            '{' +
+            (f'"tool_flutes":{self._tool_flutes},' if self._tool_flutes is not None else '') +
+            (f'"tool_diameter":{self._tool_diameter},' if self._tool_diameter is not None else '') +
+            (f'"spindle_speed":{self._spindle_speed},' if self._spindle_speed is not None else '') +
+            (f'"feed_rate":{self._feed_rate},' if self._feed_rate is not None else '') +
+            (f'"max_stepover":{self._max_stepover},' if self._max_stepover is not None else '') +
+            (f'"max_stepdown":{self._max_stepdown},' if self._max_stepdown is not None else '') +
+            (f'"max_helix_stepover":{self._max_helix_stepover},' if self._max_helix_stepover is not None else '') +
+            (f'"helix_feed_rate":{self._helix_feed_rate},' if self._helix_feed_rate is not None else '') +
+            (f'"max_helix_angle":{self._max_helix_angle},' if self._max_helix_angle is not None else '') +
+            (f'"finishing_pass":{self._finishing_pass},' if self._finishing_pass is not None else '') +
+            (f'"finishing_feed_rate":{self._finishing_feed_rate},' if self._finishing_feed_rate is not None else '') +
+            (f'"finishing_climb":{self._finishing_climb}' if self._finishing_climb is not None else '') +
+            '}'
+        ).replace(',}', '}')
 
     tool_flutes = property(
         fget=lambda self: self._tool_flutes,
