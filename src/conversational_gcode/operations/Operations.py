@@ -87,7 +87,7 @@ def helical_plunge(
     plunge_per_rev_using_angle = path_circumference * tan(tool_options.max_helix_angle * pi / 180)
     average_plunge_per_rev_using_angle = plunge_depth / ceil(plunge_depth / plunge_per_rev_using_angle)
 
-    plunge_per_rev = min(plunge_depth, average_plunge_per_rev_using_angle)
+    plunge_per_rev = min(tool_options.max_stepdown, average_plunge_per_rev_using_angle)
 
     step_depth = position[2] - plunge_depth
 
@@ -172,12 +172,12 @@ def spiral_in(
         # Semicircle in decreasing radius
         path_radius -= radial_stepover / 2
         position[0] -= path_radius * 2
-        commands.append(G2(x=position[0], y=position[1], i=-path_radius, f=tool_options.feed_rate))
+        commands.append(G3(x=position[0], y=position[1], i=-path_radius, f=tool_options.feed_rate))
         # Semi circle maintaining radius
         path_radius -= radial_stepover / 2
         position[0] += path_radius * 2
-        commands.append(G2(x=position[0], y=position[1], i=path_radius, f=tool_options.feed_rate))
+        commands.append(G3(x=position[0], y=position[1], i=path_radius, f=tool_options.feed_rate))
     # Complete circle at final radius
     position[0] -= path_radius * 2
     commands.append(
-        G2(x=position[0], y=position[1], i=-path_radius, f=tool_options.feed_rate, comment='Complete circle at final radius'))
+        G3(x=position[0], y=position[1], i=-path_radius, f=tool_options.feed_rate, comment='Complete circle at final radius'))

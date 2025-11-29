@@ -108,6 +108,7 @@ class TestOperationsHelicalPlunge(TestCase):
                     f=self.tool_options.feed_rate
                 )
             )
+
         self.assertEqual(
             commands[5],
             arc_command(
@@ -345,6 +346,230 @@ class TestOperationsHelicalPlunge(TestCase):
             centre=centre,
             radius=radius,
             plunge_depth=plunge_depth,
+            position=position,
+            commands=commands
+        )
+
+
+class TestOperationsSpiralOut(TestCase):
+
+    def setUp(self):
+        self.tool_options = ToolOptions()
+
+    def assertSpiral(
+            self,
+            arc_command: type,
+            centre: [float],
+            initial_radius: float,
+            final_radius: float,
+            stepover: float,
+            step_count: int,
+            position: [float],
+            commands: [GCode]
+    ):
+        self.assertEqual(len(commands), step_count * 2 + 2)
+        self.assertEqual(
+            commands[0],
+            GCode(f'Spiral out to final radius in {self.tool_options.max_stepover:.2f}mm passes')
+        )
+        for count in range(1, 3):
+            self.assertEqual(
+                commands[count * 2 - 1],
+                arc_command(
+                    x=centre[0] - (initial_radius + stepover * count),
+                    y=centre[1],
+                    i=-(initial_radius + stepover * (count - 0.5)),
+                    f=self.tool_options.feed_rate
+                )
+            )
+            self.assertEqual(
+                commands[count * 2],
+                arc_command(
+                    x=centre[0] + (initial_radius + stepover * count),
+                    y=centre[1],
+                    i=(initial_radius + stepover * count),
+                    f=self.tool_options.feed_rate
+                )
+            )
+
+        self.assertEqual(
+            commands[step_count * 2 + 1],
+            arc_command(
+                x=centre[0] - final_radius,
+                y=centre[1],
+                i=-final_radius,
+                f=self.tool_options.feed_rate,
+                comment='Complete circle at final radius'
+            )
+        )
+
+        self.assertEqual(
+            position,
+            [centre[0] - final_radius, centre[1], centre[2]]
+        )
+
+    def test_spiral_out_at_origin(self):
+        commands = []
+        current_radius = 10
+        final_radius = current_radius + 2 * self.tool_options.max_stepover
+        centre = [0, 0, 0]
+        position = [centre[0] + current_radius, centre[1], centre[2]]
+
+        spiral_out(
+            current_radius=current_radius,
+            final_path_radius=final_radius,
+            position=position,
+            commands=commands,
+            tool_options=self.tool_options,
+            precision=2
+        )
+
+        self.assertSpiral(
+            arc_command=G2,
+            centre=centre,
+            initial_radius=current_radius,
+            final_radius=final_radius,
+            stepover=self.tool_options.max_stepover,
+            step_count=2,
+            position=position,
+            commands=commands
+        )
+
+    def test_spiral_out_at_position(self):
+        commands = []
+        current_radius = 10
+        final_radius = current_radius + 2 * self.tool_options.max_stepover
+        centre = [1, 2, 3]
+        position = [centre[0] + current_radius, centre[1], centre[2]]
+
+        spiral_out(
+            current_radius=current_radius,
+            final_path_radius=final_radius,
+            position=position,
+            commands=commands,
+            tool_options=self.tool_options,
+            precision=2
+        )
+
+        self.assertSpiral(
+            arc_command=G2,
+            centre=centre,
+            initial_radius=current_radius,
+            final_radius=final_radius,
+            stepover=self.tool_options.max_stepover,
+            step_count=2,
+            position=position,
+            commands=commands
+        )
+
+
+class TestOperationsSpiralIn(TestCase):
+
+    def setUp(self):
+        self.tool_options = ToolOptions()
+
+    def assertSpiral(
+            self,
+            arc_command: type,
+            centre: [float],
+            initial_radius: float,
+            final_radius: float,
+            stepover: float,
+            step_count: int,
+            position: [float],
+            commands: [GCode]
+    ):
+        self.assertEqual(len(commands), step_count * 2 + 2)
+        self.assertEqual(
+            commands[0],
+            GCode(f'Spiral in to final radius in {self.tool_options.max_stepover:.2f}mm passes')
+        )
+        for count in range(1, 3):
+            self.assertEqual(
+                commands[count * 2 - 1],
+                arc_command(
+                    x=centre[0] - (initial_radius - stepover * count),
+                    y=centre[1],
+                    i=-(initial_radius - stepover * (count - 0.5)),
+                    f=self.tool_options.feed_rate
+                )
+            )
+            self.assertEqual(
+                commands[count * 2],
+                arc_command(
+                    x=centre[0] + (initial_radius - stepover * count),
+                    y=centre[1],
+                    i=(initial_radius - stepover * count),
+                    f=self.tool_options.feed_rate
+                )
+            )
+
+        self.assertEqual(
+            commands[step_count * 2 + 1],
+            arc_command(
+                x=centre[0] - final_radius,
+                y=centre[1],
+                i=-final_radius,
+                f=self.tool_options.feed_rate,
+                comment='Complete circle at final radius'
+            )
+        )
+
+        self.assertEqual(
+            position,
+            [centre[0] - final_radius, centre[1], centre[2]]
+        )
+
+    def test_spiral_in_at_origin(self):
+        commands = []
+        final_radius = 10
+        current_radius = final_radius + 2 * self.tool_options.max_stepover
+        centre = [0, 0, 0]
+        position = [centre[0] + current_radius, centre[1], centre[2]]
+
+        spiral_in(
+            current_radius=current_radius,
+            final_path_radius=final_radius,
+            position=position,
+            commands=commands,
+            tool_options=self.tool_options,
+            precision=2
+        )
+
+        self.assertSpiral(
+            arc_command=G3,
+            centre=centre,
+            initial_radius=current_radius,
+            final_radius=final_radius,
+            stepover=self.tool_options.max_stepover,
+            step_count=2,
+            position=position,
+            commands=commands
+        )
+
+    def test_spiral_in_at_position(self):
+        commands = []
+        final_radius = 10
+        current_radius = final_radius + 2 * self.tool_options.max_stepover
+        centre = [1, 2, 3]
+        position = [centre[0] + current_radius, centre[1], centre[2]]
+
+        spiral_in(
+            current_radius=current_radius,
+            final_path_radius=final_radius,
+            position=position,
+            commands=commands,
+            tool_options=self.tool_options,
+            precision=2
+        )
+
+        self.assertSpiral(
+            arc_command=G3,
+            centre=centre,
+            initial_radius=current_radius,
+            final_radius=final_radius,
+            stepover=self.tool_options.max_stepover,
+            step_count=2,
             position=position,
             commands=commands
         )
