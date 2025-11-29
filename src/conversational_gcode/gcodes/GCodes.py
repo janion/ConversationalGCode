@@ -49,6 +49,12 @@ class GCode:
     def transform(self, transformation):
         return self
 
+    def __eq__(self, __o: object) -> bool:
+        if not isinstance(__o, GCode):
+            return False
+
+        return self.comment == __o.comment
+
 
 @dataclass
 class M2(GCode):
@@ -62,6 +68,12 @@ class M2(GCode):
     def format(self, output_options):
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'M2{end}'
+
+    def __eq__(self, __o: object) -> bool:
+        if not super().__eq__(__o):
+            return False
+
+        return isinstance(__o, M2)
 
 
 @dataclass
@@ -81,6 +93,15 @@ class M3(GCode):
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'M3{rpm}{end}'
 
+    def __eq__(self, __o: object) -> bool:
+        if not super().__eq__(__o):
+            return False
+
+        if not isinstance(__o, M3):
+            return False
+
+        return self.s == __o.s
+
 
 @dataclass
 class M5(GCode):
@@ -95,6 +116,12 @@ class M5(GCode):
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'M5{end}'
 
+    def __eq__(self, __o: object) -> bool:
+        if not super().__eq__(__o):
+            return False
+
+        return isinstance(__o, M5)
+
 
 @dataclass
 class G0(GCode):
@@ -107,6 +134,7 @@ class G0(GCode):
         z (float): The Z-axis location to which to move the tool.
         comment (str): An optional comment to print at the end of the line.
     """
+
     x: float = None  # mm
     y: float = None  # mm
     z: float = None  # mm
@@ -126,6 +154,17 @@ class G0(GCode):
         self.z = new_point[2]
 
         return self
+
+    def __eq__(self, __o: object) -> bool:
+        if not super().__eq__(__o):
+            return False
+
+        if not isinstance(__o, G0):
+            return False
+
+        return (self.x == __o.x and
+                self.y == __o.y and
+                self.z == __o.z)
 
 
 @dataclass
@@ -151,6 +190,15 @@ class G1(G0):
         feed = f' F{self.f:.{feed_precision}f}'
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'G1{x_pos}{y_pos}{z_pos}{feed}{end}'
+
+    def __eq__(self, __o: object) -> bool:
+        if not super().__eq__(__o):
+            return False
+
+        if not isinstance(__o, G1):
+            return False
+
+        return self.f == __o.f
 
 
 @dataclass
@@ -202,6 +250,17 @@ class G2(G1):
 
         return self
 
+    def __eq__(self, __o: object) -> bool:
+        if not super().__eq__(__o):
+            return False
+
+        if not isinstance(__o, G2):
+            return False
+
+        return (self.i == __o.i and
+                self.j == __o.j and
+                self.k == __o.k)
+
 
 @dataclass
 class G3(G2):
@@ -225,6 +284,12 @@ class G3(G2):
     def format(self, output_options):
         return self._format_arc('G3', output_options)
 
+    def __eq__(self, __o: object) -> bool:
+        if not super().__eq__(__o):
+            return False
+
+        return isinstance(__o, G3)
+
 
 class G80(GCode):
     """
@@ -237,6 +302,12 @@ class G80(GCode):
     def format(self, output_options):
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'G80{end}'
+
+    def __eq__(self, __o: object) -> bool:
+        if not super().__eq__(__o):
+            return False
+
+        return isinstance(__o, G80)
 
 
 @dataclass
@@ -264,6 +335,15 @@ class G81(G1):
         feed = f' F{self.f:.{feed_precision}f}'
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'G81{x_pos}{y_pos}{z_pos}{r}{feed}{end}'
+
+    def __eq__(self, __o: object) -> bool:
+        if not super().__eq__(__o):
+            return False
+
+        if not isinstance(__o, G81):
+            return False
+
+        return self.r == __o.r
 
 
 @dataclass
@@ -293,6 +373,15 @@ class G82(G81):
         feed = f' F{self.f:.{feed_precision}f}'
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'G82{x_pos}{y_pos}{z_pos}{r}{p}{feed}{end}'
+
+    def __eq__(self, __o: object) -> bool:
+        if not super().__eq__(__o):
+            return False
+
+        if not isinstance(__o, G82):
+            return False
+
+        return self.p == __o.p
 
 
 @dataclass
@@ -325,6 +414,15 @@ class G83(G82):
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'G83{x_pos}{y_pos}{z_pos}{r}{q}{p}{feed}{end}'
 
+    def __eq__(self, __o: object) -> bool:
+        if not super().__eq__(__o):
+            return False
+
+        if not isinstance(__o, G83):
+            return False
+
+        return self.q == __o.q
+
 
 @dataclass
 class CyclePosition(G0):
@@ -350,3 +448,9 @@ class CyclePosition(G0):
 
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'{x_pos}{spacer_xy}{y_pos}{spacer_yz}{z_pos}{end}'
+
+    def __eq__(self, __o: object) -> bool:
+        if not super().__eq__(__o):
+            return False
+
+        return isinstance(__o, CyclePosition)

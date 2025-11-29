@@ -19,7 +19,7 @@ class TestCode(TestCase):
         self.r = 2
         self.q = 4
         self.p = 8
-        self.feed = 42
+        self.f = 42
 
         self.x_coord = f'X{self.x:.{self.output_options.position_precision}f}'
         self.y_coord = f'Y{self.y:.{self.output_options.position_precision}f}'
@@ -30,7 +30,7 @@ class TestCode(TestCase):
         self.r_coord = f'R{self.r:.{self.output_options.position_precision}f}'
         self.q_coord = f'Q{self.q:.{self.output_options.position_precision}f}'
         self.p_time = f'P{self.p:d}'
-        self.feed_element = f'F{self.feed:.{self.output_options.feed_precision}f}'
+        self.feed_element = f'F{self.f:.{self.output_options.feed_precision}f}'
 
 
 class TestGCode(TestCode):
@@ -43,6 +43,16 @@ class TestGCode(TestCode):
         system_under_test = GCode(self.comment)
         self.assertEqual(system_under_test.format(self.output_options), f'; {self.comment}')
 
+    def test_equality(self):
+        expected = GCode(self.comment)
+        actual = GCode(self.comment)
+        self.assertEqual(actual, expected)
+
+    def test_inequality(self):
+        expected = GCode(self.comment)
+        actual = GCode(f'not {self.comment}')
+        self.assertNotEqual(actual, expected)
+
 
 class TestM2(TestCode):
 
@@ -53,6 +63,16 @@ class TestM2(TestCode):
     def test_m2_with_comment(self):
         system_under_test = M2(self.comment)
         self.assertEqual(system_under_test.format(self.output_options), f'M2; {self.comment}')
+
+    def test_equality(self):
+        expected = M2(self.comment)
+        actual = M2(self.comment)
+        self.assertEqual(actual, expected)
+
+    def test_inequality(self):
+        expected = M2(self.comment)
+        actual = M2(f'not {self.comment}')
+        self.assertNotEqual(actual, expected)
 
 
 class TestM3(TestCode):
@@ -71,6 +91,16 @@ class TestM3(TestCode):
             f'M3 S{self.speed:.{self.output_options.speed_precision}f}; {self.comment}'
         )
 
+    def test_equality(self):
+        expected = M3(s=self.speed, comment=self.comment)
+        actual = M3(s=self.speed, comment=self.comment)
+        self.assertEqual(actual, expected)
+
+    def test_inequality(self):
+        expected = M3(s=self.speed, comment=self.comment)
+        actual = M3(s=self.speed + 1, comment=self.comment)
+        self.assertNotEqual(actual, expected)
+
 
 class TestM5(TestCode):
 
@@ -81,6 +111,16 @@ class TestM5(TestCode):
     def test_m5_with_comment(self):
         system_under_test = M5(self.comment)
         self.assertEqual(system_under_test.format(self.output_options), f'M5; {self.comment}')
+
+    def test_equality(self):
+        expected = M5(self.comment)
+        actual = M5(self.comment)
+        self.assertEqual(actual, expected)
+
+    def test_inequality(self):
+        expected = M5(self.comment)
+        actual = M5(f'not {self.comment}')
+        self.assertNotEqual(actual, expected)
 
 
 class TestG0(TestCode):
@@ -141,64 +181,84 @@ class TestG0(TestCode):
             f'G0 {self.x_coord};'
         )
 
+    def test_equality(self):
+        expected = G0(x=self.x, y=self.y, z=self.z)
+        actual = G0(x=self.x, y=self.y, z=self.z)
+        self.assertEqual(actual, expected)
+
+    def test_inequality(self):
+        expected = G0(x=self.x, y=self.y, z=self.z)
+        actual = G0(x=self.x, y=self.y, z=self.z + 1)
+        self.assertNotEqual(actual, expected)
+
 
 class TestG1(TestCode):
 
     def test_g1_without_comment(self):
-        system_under_test = G1(x=self.x, y=self.y, z=self.z, f=self.feed)
+        system_under_test = G1(x=self.x, y=self.y, z=self.z, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G1 {self.x_coord} {self.y_coord} {self.z_coord} {self.feed_element};'
         )
 
     def test_g1_with_comment(self):
-        system_under_test = G1(x=self.x, y=self.y, z=self.z, f=self.feed, comment=self.comment)
+        system_under_test = G1(x=self.x, y=self.y, z=self.z, f=self.f, comment=self.comment)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G1 {self.x_coord} {self.y_coord} {self.z_coord} {self.feed_element}; {self.comment}'
         )
 
     def test_g1_without_x(self):
-        system_under_test = G1(y=self.y, z=self.z, f=self.feed)
+        system_under_test = G1(y=self.y, z=self.z, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G1 {self.y_coord} {self.z_coord} {self.feed_element};'
         )
 
     def test_g1_without_y(self):
-        system_under_test = G1(x=self.x, z=self.z, f=self.feed)
+        system_under_test = G1(x=self.x, z=self.z, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G1 {self.x_coord} {self.z_coord} {self.feed_element};'
         )
 
     def test_g1_without_z(self):
-        system_under_test = G1(x=self.x, y=self.y, f=self.feed)
+        system_under_test = G1(x=self.x, y=self.y, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G1 {self.x_coord} {self.y_coord} {self.feed_element};'
         )
 
     def test_g1_without_x_or_y(self):
-        system_under_test = G1(z=self.z, f=self.feed)
+        system_under_test = G1(z=self.z, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G1 {self.z_coord} {self.feed_element};'
         )
 
     def test_g1_without_x_or_z(self):
-        system_under_test = G1(y=self.y, f=self.feed)
+        system_under_test = G1(y=self.y, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G1 {self.y_coord} {self.feed_element};'
         )
 
     def test_g1_without_y_or_z(self):
-        system_under_test = G1(x=self.x, f=self.feed)
+        system_under_test = G1(x=self.x, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G1 {self.x_coord} {self.feed_element};'
         )
+
+    def test_equality(self):
+        expected = G1(x=self.x, y=self.y, z=self.z, f=self.f)
+        actual = G1(x=self.x, y=self.y, z=self.z, f=self.f)
+        self.assertEqual(actual, expected)
+
+    def test_inequality(self):
+        expected = G1(x=self.x, y=self.y, z=self.z, f=self.f)
+        actual = G1(x=self.x, y=self.y, z=self.z, f=self.f + 1)
+        self.assertNotEqual(actual, expected)
 
 
 class TestG2(TestCode):
@@ -216,7 +276,7 @@ class TestG2(TestCode):
             i=self.i,
             j=self.j,
             k=self.k,
-            f=self.feed
+            f=self.f
         )
         self.assertEqual(
             system_under_test.format(self.output_options),
@@ -231,7 +291,7 @@ class TestG2(TestCode):
             i=self.i,
             j=self.j,
             k=self.k,
-            f=self.feed,
+            f=self.f,
             comment=self.comment
         )
         self.assertEqual(
@@ -246,7 +306,7 @@ class TestG2(TestCode):
             i=self.i,
             j=self.j,
             k=self.k,
-            f=self.feed
+            f=self.f
         )
         self.assertEqual(
             system_under_test.format(self.output_options),
@@ -260,7 +320,7 @@ class TestG2(TestCode):
             i=self.i,
             j=self.j,
             k=self.k,
-            f=self.feed
+            f=self.f
         )
         self.assertEqual(
             system_under_test.format(self.output_options),
@@ -274,7 +334,7 @@ class TestG2(TestCode):
             i=self.i,
             j=self.j,
             k=self.k,
-            f=self.feed
+            f=self.f
         )
         self.assertEqual(
             system_under_test.format(self.output_options),
@@ -288,7 +348,7 @@ class TestG2(TestCode):
             z=self.z,
             j=self.j,
             k=self.k,
-            f=self.feed
+            f=self.f
         )
         self.assertEqual(
             system_under_test.format(self.output_options),
@@ -302,7 +362,7 @@ class TestG2(TestCode):
             z=self.z,
             i=self.i,
             k=self.k,
-            f=self.feed
+            f=self.f
         )
         self.assertEqual(
             system_under_test.format(self.output_options),
@@ -316,12 +376,50 @@ class TestG2(TestCode):
             z=self.z,
             i=self.i,
             j=self.j,
-            f=self.feed
+            f=self.f
         )
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'{self.command_name} {self.x_coord} {self.y_coord} {self.z_coord} {self.i_coord} {self.j_coord} {self.feed_element};'
         )
+
+    def test_equality(self):
+        expected = self.command(
+            x=self.x,
+            y=self.y,
+            z=self.z,
+            i=self.i,
+            j=self.j,
+            f=self.f
+        )
+        actual = self.command(
+            x=self.x,
+            y=self.y,
+            z=self.z,
+            i=self.i,
+            j=self.j,
+            f=self.f
+        )
+        self.assertEqual(actual, expected)
+
+    def test_inequality(self):
+        expected = self.command(
+            x=self.x,
+            y=self.y,
+            z=self.z,
+            i=self.i,
+            j=self.j,
+            f=self.f
+        )
+        actual = self.command(
+            x=self.x,
+            y=self.y,
+            z=self.z,
+            i=self.i,
+            j=self.j + 1,
+            f=self.f
+        )
+        self.assertNotEqual(actual, expected)
 
 
 class TestG3(TestG2):
@@ -340,126 +438,166 @@ class TestG80(TestCode):
         system_under_test = G80(self.comment)
         self.assertEqual(system_under_test.format(self.output_options), f'G80; {self.comment}')
 
+    def test_equality(self):
+        expected = G80(comment=self.comment)
+        actual = G80(comment=self.comment)
+        self.assertEqual(actual, expected)
+
+    def test_inequality(self):
+        expected = G80(comment=self.comment)
+        actual = G80(comment=f'not {self.comment}')
+        self.assertNotEqual(actual, expected)
+
 
 class TestG81(TestCode):
 
     def test_g81_without_comment(self):
-        system_under_test = G81(x=self.x, y=self.y, z=self.z, r=self.r, f=self.feed)
+        system_under_test = G81(x=self.x, y=self.y, z=self.z, r=self.r, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G81 {self.x_coord} {self.y_coord} {self.z_coord} {self.r_coord} {self.feed_element};'
         )
 
     def test_g81_with_comment(self):
-        system_under_test = G81(x=self.x, y=self.y, z=self.z, r=self.r, f=self.feed, comment=self.comment)
+        system_under_test = G81(x=self.x, y=self.y, z=self.z, r=self.r, f=self.f, comment=self.comment)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G81 {self.x_coord} {self.y_coord} {self.z_coord} {self.r_coord} {self.feed_element}; {self.comment}'
         )
 
     def test_g81_without_x(self):
-        system_under_test = G81(y=self.y, z=self.z, r=self.r, f=self.feed)
+        system_under_test = G81(y=self.y, z=self.z, r=self.r, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G81 {self.y_coord} {self.z_coord} {self.r_coord} {self.feed_element};'
         )
 
     def test_g81_without_y(self):
-        system_under_test = G81(x=self.x, z=self.z, r=self.r, f=self.feed)
+        system_under_test = G81(x=self.x, z=self.z, r=self.r, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G81 {self.x_coord} {self.z_coord} {self.r_coord} {self.feed_element};'
         )
 
     def test_g81_without_z(self):
-        system_under_test = G81(x=self.x, y=self.y, r=self.r, f=self.feed)
+        system_under_test = G81(x=self.x, y=self.y, r=self.r, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G81 {self.x_coord} {self.y_coord} {self.r_coord} {self.feed_element};'
         )
 
+    def test_equality(self):
+        expected = G81(x=self.x, y=self.y, r=self.r, f=self.f)
+        actual = G81(x=self.x, y=self.y, r=self.r, f=self.f)
+        self.assertEqual(actual, expected)
+
+    def test_inequality(self):
+        expected = G81(x=self.x, y=self.y, r=self.r, f=self.f)
+        actual = G81(x=self.x, y=self.y, r=self.r + 1, f=self.f)
+        self.assertNotEqual(actual, expected)
+
 
 class TestG82(TestCode):
 
     def test_g82_without_comment(self):
-        system_under_test = G82(x=self.x, y=self.y, z=self.z, r=self.r, p=self.p, f=self.feed)
+        system_under_test = G82(x=self.x, y=self.y, z=self.z, r=self.r, p=self.p, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G82 {self.x_coord} {self.y_coord} {self.z_coord} {self.r_coord} {self.p_time} {self.feed_element};'
         )
 
     def test_g82_with_comment(self):
-        system_under_test = G82(x=self.x, y=self.y, z=self.z, r=self.r, p=self.p, f=self.feed, comment=self.comment)
+        system_under_test = G82(x=self.x, y=self.y, z=self.z, r=self.r, p=self.p, f=self.f, comment=self.comment)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G82 {self.x_coord} {self.y_coord} {self.z_coord} {self.r_coord} {self.p_time} {self.feed_element}; {self.comment}'
         )
 
     def test_g82_without_x(self):
-        system_under_test = G82(y=self.y, z=self.z, r=self.r, p=self.p, f=self.feed)
+        system_under_test = G82(y=self.y, z=self.z, r=self.r, p=self.p, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G82 {self.y_coord} {self.z_coord} {self.r_coord} {self.p_time} {self.feed_element};'
         )
 
     def test_g82_without_y(self):
-        system_under_test = G82(x=self.x, z=self.z, r=self.r, p=self.p, f=self.feed)
+        system_under_test = G82(x=self.x, z=self.z, r=self.r, p=self.p, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G82 {self.x_coord} {self.z_coord} {self.r_coord} {self.p_time} {self.feed_element};'
         )
 
     def test_g82_without_z(self):
-        system_under_test = G82(x=self.x, y=self.y, r=self.r, p=self.p, f=self.feed)
+        system_under_test = G82(x=self.x, y=self.y, r=self.r, p=self.p, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G82 {self.x_coord} {self.y_coord} {self.r_coord} {self.p_time} {self.feed_element};'
         )
 
+    def test_equality(self):
+        expected = G82(x=self.x, y=self.y, r=self.r, p=self.p, f=self.f)
+        actual = G82(x=self.x, y=self.y, r=self.r, p=self.p, f=self.f)
+        self.assertEqual(actual, expected)
+
+    def test_inequality(self):
+        expected = G82(x=self.x, y=self.y, r=self.r, p=self.p, f=self.f)
+        actual = G82(x=self.x, y=self.y, r=self.r, p=self.p + 1, f=self.f)
+        self.assertNotEqual(actual, expected)
+
 
 class TestG83(TestCode):
 
     def test_g83_without_comment(self):
-        system_under_test = G83(x=self.x, y=self.y, z=self.z, r=self.r, q=self.q, p=self.p, f=self.feed)
+        system_under_test = G83(x=self.x, y=self.y, z=self.z, r=self.r, q=self.q, p=self.p, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G83 {self.x_coord} {self.y_coord} {self.z_coord} {self.r_coord} {self.q_coord} {self.p_time} {self.feed_element};'
         )
 
     def test_g83_with_comment(self):
-        system_under_test = G83(x=self.x, y=self.y, z=self.z, r=self.r, q=self.q, p=self.p, f=self.feed, comment=self.comment)
+        system_under_test = G83(x=self.x, y=self.y, z=self.z, r=self.r, q=self.q, p=self.p, f=self.f, comment=self.comment)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G83 {self.x_coord} {self.y_coord} {self.z_coord} {self.r_coord} {self.q_coord} {self.p_time} {self.feed_element}; {self.comment}'
         )
 
     def test_g83_without_x(self):
-        system_under_test = G83(y=self.y, z=self.z, r=self.r, q=self.q, p=self.p, f=self.feed)
+        system_under_test = G83(y=self.y, z=self.z, r=self.r, q=self.q, p=self.p, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G83 {self.y_coord} {self.z_coord} {self.r_coord} {self.q_coord} {self.p_time} {self.feed_element};'
         )
 
     def test_g83_without_y(self):
-        system_under_test = G83(x=self.x, z=self.z, r=self.r, q=self.q, p=self.p, f=self.feed)
+        system_under_test = G83(x=self.x, z=self.z, r=self.r, q=self.q, p=self.p, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G83 {self.x_coord} {self.z_coord} {self.r_coord} {self.q_coord} {self.p_time} {self.feed_element};'
         )
 
     def test_g83_without_z(self):
-        system_under_test = G83(x=self.x, y=self.y, r=self.r, q=self.q, p=self.p, f=self.feed)
+        system_under_test = G83(x=self.x, y=self.y, r=self.r, q=self.q, p=self.p, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G83 {self.x_coord} {self.y_coord} {self.r_coord} {self.q_coord} {self.p_time} {self.feed_element};'
         )
 
     def test_g83_without_p(self):
-        system_under_test = G83(x=self.x, y=self.y, z=self.z, r=self.r, q=self.q, f=self.feed)
+        system_under_test = G83(x=self.x, y=self.y, z=self.z, r=self.r, q=self.q, f=self.f)
         self.assertEqual(
             system_under_test.format(self.output_options),
             f'G83 {self.x_coord} {self.y_coord} {self.z_coord} {self.r_coord} {self.q_coord} P0 {self.feed_element};'
         )
+
+    def test_equality(self):
+        expected = G83(x=self.x, y=self.y, z=self.z, r=self.r, q=self.q, f=self.f)
+        actual = G83(x=self.x, y=self.y, z=self.z, r=self.r, q=self.q, f=self.f)
+        self.assertEqual(actual, expected)
+
+    def test_inequality(self):
+        expected = G83(x=self.x, y=self.y, z=self.z, r=self.r, q=self.q, f=self.f)
+        actual = G83(x=self.x, y=self.y, z=self.z, r=self.r, q=self.q + 1, f=self.f)
+        self.assertNotEqual(actual, expected)
 
 
 class TestCyclePosition(TestCode):
@@ -519,3 +657,13 @@ class TestCyclePosition(TestCode):
             system_under_test.format(self.output_options),
             f'{self.x_coord};'
         )
+
+    def test_equality(self):
+        expected = CyclePosition(x=self.x, y=self.y, z=self.z)
+        actual = CyclePosition(x=self.x, y=self.y, z=self.z)
+        self.assertEqual(actual, expected)
+
+    def test_inequality(self):
+        expected = CyclePosition(x=self.x, y=self.y, z=self.z)
+        actual = CyclePosition(x=self.x, y=self.y, z=self.z + 1)
+        self.assertNotEqual(actual, expected)
