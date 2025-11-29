@@ -7,7 +7,6 @@ Classes:
 """
 
 from conversational_gcode.validate.validation_result import ValidationResult
-from conversational_gcode.Jsonable import Jsonable
 
 
 class JobOptions:
@@ -44,14 +43,6 @@ class JobOptions:
     def _set_lead_in(self, value):
         self._lead_in = value
 
-    def to_json(self):
-        return (
-                '{' +
-                (f'"clearance_height":{self._clearance_height},' if self._clearance_height is not None else '') +
-                (f'"lead_in":{self._lead_in}' if self._lead_in is not None else '') +
-                '}'
-        ).replace(',}', '}')
-
     clearance_height = property(
         fget=lambda self: self._clearance_height,
         fset=_set_clearance_height
@@ -61,3 +52,11 @@ class JobOptions:
         fget=lambda self: self._lead_in,
         fset=_set_lead_in
     )
+
+    def to_json(self):
+        return (
+                '{' +
+                (f'"clearance_height":{self._clearance_height},' if self._clearance_height is not None else '') +
+                (f'"lead_in":{self._lead_in}' if self._lead_in is not None else '') +
+                '}'
+        ).replace(',}', '}')

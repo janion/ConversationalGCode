@@ -10,7 +10,6 @@ from conversational_gcode.options.ToolOptions import ToolOptions
 from conversational_gcode.options.JobOptions import JobOptions
 from conversational_gcode.options.OutputOptions import OutputOptions
 from conversational_gcode.validate.validation_result import ValidationResult
-from conversational_gcode.Jsonable import Jsonable
 
 
 class Options:
@@ -53,6 +52,10 @@ class Options:
 
         return results
 
+    tool = property(fget=lambda self: self._tool)
+    job = property(fget=lambda self: self._job)
+    output = property(fget=lambda self: self._output)
+
     def to_json(self):
         return (
                 '{' +
@@ -61,7 +64,3 @@ class Options:
                 f'"output":{self.output.to_json()}' +
                 '}'
         )
-
-    tool = property(fget=lambda self: self._tool)
-    job = property(fget=lambda self: self._job)
-    output = property(fget=lambda self: self._output)
