@@ -16,6 +16,11 @@ from conversational_gcode.Jsonable import Jsonable
 class Options(Jsonable):
     """
     Options for GCode generation. Contains sub-objects for more specific options.
+
+    Attributes:
+        tool (ToolOptions): ToolOptions defining options for a cutting tool.
+        job (JobOptions): JobOptions for defining options for the whole job.
+        output (OutputOptions): OutputOptions for defining options relating to printing the GCode.
     """
 
     def __init__(

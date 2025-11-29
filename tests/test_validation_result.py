@@ -9,17 +9,17 @@ class TestJobOptions(TestCase):
         system_under_test = ValidationResult()
 
         self.assertTrue(system_under_test.success)
-        self.assertEqual(system_under_test.message, 'Valid')
+        self.assertEqual('Valid', system_under_test.message)
 
     def test_default_failure_values(self):
         system_under_test = ValidationResult(False)
 
         self.assertFalse(system_under_test.success)
-        self.assertEqual(system_under_test.message, 'Invalid')
+        self.assertEqual('Invalid', system_under_test.message)
 
     def test_message_stored(self):
         message = "It's borked"
         system_under_test = ValidationResult(False, message)
 
         self.assertFalse(system_under_test.success)
-        self.assertEqual(system_under_test.message, message)
+        self.assertEqual(message, system_under_test.message)

@@ -25,7 +25,7 @@ class TestOperationsRapidWithZHop(TestCase):
         )
 
         # Check commands
-        self.assertEqual(len(commands), 2)
+        self.assertEqual(2, len(commands))
         self.assertEqual(
             G0(x=0.5, y=1, z=3 + self.job_options.lead_in, comment=comment),
             commands[0]
@@ -33,12 +33,12 @@ class TestOperationsRapidWithZHop(TestCase):
         self.assertEqual(G0(x=1, y=2, z=3), commands[1])
 
         # Check final position
-        self.assertEqual(position, end)
+        self.assertEqual(end, position)
 
         # Check intermediate positions
-        self.assertEqual(len(commands), 2)
-        self.assertEqual(positions[0], [0.5, 1, 3 + self.job_options.lead_in])
-        self.assertEqual(positions[1], end)
+        self.assertEqual(2, len(commands))
+        self.assertEqual([0.5, 1, 3 + self.job_options.lead_in], positions[0])
+        self.assertEqual(end, positions[1])
 
     def test_nowhere_to_xyz(self):
         comment = "Weeeeee!"
@@ -53,7 +53,7 @@ class TestOperationsRapidWithZHop(TestCase):
         )
 
         # Check commands
-        self.assertEqual(len(commands), 2)
+        self.assertEqual(2, len(commands))
         self.assertEqual(
             G0(x=1, y=2, z=3 + self.job_options.lead_in, comment=comment),
             commands[0]
@@ -61,12 +61,12 @@ class TestOperationsRapidWithZHop(TestCase):
         self.assertEqual(G0(x=1, y=2, z=3), commands[1])
 
         # Check final position
-        self.assertEqual(position, end)
+        self.assertEqual(end, position)
 
         # Check intermediate positions
-        self.assertEqual(len(commands), 2)
-        self.assertEqual(positions[0], [1, 2, 3 + self.job_options.lead_in])
-        self.assertEqual(positions[1], end)
+        self.assertEqual(2, len(commands))
+        self.assertEqual([1, 2, 3 + self.job_options.lead_in], positions[0])
+        self.assertEqual(end, positions[1])
 
 
 class TestOperationsHelicalPlunge(TestCase):
@@ -83,34 +83,33 @@ class TestOperationsHelicalPlunge(TestCase):
             position: [float],
             commands: [GCode]
     ):
-        self.assertEqual(len(commands), 6)
+        self.assertEqual(6, len(commands))
         self.assertEqual(
-            commands[0],
             G0(
                 x=centre[0] + radius,
                 y=centre[1],
                 z=centre[2],
                 comment='Move to hole start position'
-            )
+            ),
+            commands[0]
         )
         self.assertEqual(
-            commands[1],
-            GCode('Helical interpolation down to step depth')
+            GCode('Helical interpolation down to step depth'),
+            commands[1]
         )
         for count in range(1, 4):
             self.assertEqual(
-                commands[1 + count],
                 arc_command(
                     x=centre[0] + radius,
                     y=centre[1],
                     z=centre[2] - count * self.tool_options.max_stepdown,
                     i=-radius,
                     f=self.tool_options.feed_rate
-                )
+                ),
+                commands[1 + count]
             )
 
         self.assertEqual(
-            commands[5],
             arc_command(
                 x=centre[0] + radius,
                 y=centre[1],
@@ -118,12 +117,13 @@ class TestOperationsHelicalPlunge(TestCase):
                 i=-radius,
                 f=self.tool_options.feed_rate,
                 comment='Final full pass at depth'
-            )
+            ),
+            commands[5]
         )
 
         self.assertEqual(
-            position,
-            [centre[0] + radius, centre[1], centre[2] - plunge_depth]
+            [centre[0] + radius, centre[1], centre[2] - plunge_depth],
+            position
         )
 
     def test_internal_conventional_plunge_at_origin(self):
@@ -367,45 +367,45 @@ class TestOperationsSpiralOut(TestCase):
             position: [float],
             commands: [GCode]
     ):
-        self.assertEqual(len(commands), step_count * 2 + 2)
+        self.assertEqual(step_count * 2 + 2, len(commands))
         self.assertEqual(
-            commands[0],
-            GCode(f'Spiral out to final radius in {self.tool_options.max_stepover:.2f}mm passes')
+            GCode(f'Spiral out to final radius in {self.tool_options.max_stepover:.2f}mm passes'),
+            commands[0]
         )
         for count in range(1, 3):
             self.assertEqual(
-                commands[count * 2 - 1],
                 arc_command(
                     x=centre[0] - (initial_radius + stepover * count),
                     y=centre[1],
                     i=-(initial_radius + stepover * (count - 0.5)),
                     f=self.tool_options.feed_rate
-                )
+                ),
+                commands[count * 2 - 1]
             )
             self.assertEqual(
-                commands[count * 2],
                 arc_command(
                     x=centre[0] + (initial_radius + stepover * count),
                     y=centre[1],
                     i=(initial_radius + stepover * count),
                     f=self.tool_options.feed_rate
-                )
+                ),
+                commands[count * 2]
             )
 
         self.assertEqual(
-            commands[step_count * 2 + 1],
             arc_command(
                 x=centre[0] - final_radius,
                 y=centre[1],
                 i=-final_radius,
                 f=self.tool_options.feed_rate,
                 comment='Complete circle at final radius'
-            )
+            ),
+            commands[step_count * 2 + 1]
         )
 
         self.assertEqual(
-            position,
-            [centre[0] - final_radius, centre[1], centre[2]]
+            [centre[0] - final_radius, centre[1], centre[2]],
+            position
         )
 
     def test_spiral_out_at_origin(self):
@@ -479,45 +479,45 @@ class TestOperationsSpiralIn(TestCase):
             position: [float],
             commands: [GCode]
     ):
-        self.assertEqual(len(commands), step_count * 2 + 2)
+        self.assertEqual(step_count * 2 + 2, len(commands))
         self.assertEqual(
-            commands[0],
-            GCode(f'Spiral in to final radius in {self.tool_options.max_stepover:.2f}mm passes')
+            GCode(f'Spiral in to final radius in {self.tool_options.max_stepover:.2f}mm passes'),
+            commands[0]
         )
         for count in range(1, 3):
             self.assertEqual(
-                commands[count * 2 - 1],
                 arc_command(
                     x=centre[0] - (initial_radius - stepover * count),
                     y=centre[1],
                     i=-(initial_radius - stepover * (count - 0.5)),
                     f=self.tool_options.feed_rate
-                )
+                ),
+                commands[count * 2 - 1]
             )
             self.assertEqual(
-                commands[count * 2],
                 arc_command(
                     x=centre[0] + (initial_radius - stepover * count),
                     y=centre[1],
                     i=(initial_radius - stepover * count),
                     f=self.tool_options.feed_rate
-                )
+                ),
+                commands[count * 2]
             )
 
         self.assertEqual(
-            commands[step_count * 2 + 1],
             arc_command(
                 x=centre[0] - final_radius,
                 y=centre[1],
                 i=-final_radius,
                 f=self.tool_options.feed_rate,
                 comment='Complete circle at final radius'
-            )
+            ),
+            commands[step_count * 2 + 1]
         )
 
         self.assertEqual(
-            position,
-            [centre[0] - final_radius, centre[1], centre[2]]
+            [centre[0] - final_radius, centre[1], centre[2]],
+            position
         )
 
     def test_spiral_in_at_origin(self):

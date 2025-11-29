@@ -8,22 +8,22 @@ class TestToolOptions(ValidationAsserter):
         self.system_under_test = ToolOptions()
 
     def test_initial_values(self):
-        self.assertEqual(self.system_under_test.tool_flutes, 4)
-        self.assertEqual(self.system_under_test.tool_diameter, 6)
+        self.assertEqual(4, self.system_under_test.tool_flutes)
+        self.assertEqual(6, self.system_under_test.tool_diameter)
 
-        self.assertEqual(self.system_under_test.spindle_speed, 1000)
-        self.assertEqual(self.system_under_test.feed_rate, 100)
+        self.assertEqual(1000, self.system_under_test.spindle_speed)
+        self.assertEqual(100, self.system_under_test.feed_rate)
 
-        self.assertEqual(self.system_under_test.max_stepover, 2)
-        self.assertEqual(self.system_under_test.max_stepdown, 3)
+        self.assertEqual(2, self.system_under_test.max_stepover)
+        self.assertEqual(3, self.system_under_test.max_stepdown)
 
-        self.assertEqual(self.system_under_test.max_helix_stepover, 2)
-        self.assertEqual(self.system_under_test.helix_feed_rate, 100)
-        self.assertEqual(self.system_under_test.max_helix_angle, 3)
+        self.assertEqual(2, self.system_under_test.max_helix_stepover)
+        self.assertEqual(100, self.system_under_test.helix_feed_rate)
+        self.assertEqual(3, self.system_under_test.max_helix_angle)
 
-        self.assertEqual(self.system_under_test.finishing_pass, 0)
-        self.assertEqual(self.system_under_test.finishing_feed_rate, 100)
-        self.assertEqual(self.system_under_test.finishing_climb, True)
+        self.assertEqual(0, self.system_under_test.finishing_pass)
+        self.assertEqual(100, self.system_under_test.finishing_feed_rate)
+        self.assertEqual(True, self.system_under_test.finishing_climb)
 
     def test_initial_validation(self):
         self.assertSuccess(self.system_under_test)

@@ -8,8 +8,8 @@ class TestJobOptions(ValidationAsserter):
         self.system_under_test = JobOptions()
 
     def test_initial_values(self):
-        self.assertEqual(self.system_under_test.clearance_height, 10)
-        self.assertEqual(self.system_under_test.lead_in, 0.25)
+        self.assertEqual(10, self.system_under_test.clearance_height)
+        self.assertEqual(0.25, self.system_under_test.lead_in)
 
     def test_initial_validation(self):
         self.assertSuccess(self.system_under_test)

@@ -8,9 +8,9 @@ class TestOutputOptions(ValidationAsserter):
         self.system_under_test = OutputOptions()
 
     def test_initial_values(self):
-        self.assertEqual(self.system_under_test.position_precision, 3)
-        self.assertEqual(self.system_under_test.feed_precision, 2)
-        self.assertEqual(self.system_under_test.speed_precision, 1)
+        self.assertEqual(3, self.system_under_test.position_precision)
+        self.assertEqual(2, self.system_under_test.feed_precision)
+        self.assertEqual(1, self.system_under_test.speed_precision)
 
     def test_initial_validation(self):
         self.assertSuccess(self.system_under_test)
