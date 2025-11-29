@@ -7,9 +7,6 @@ class TestOutputOptions(ValidationAsserter):
     def setUp(self):
         self.system_under_test = OutputOptions()
 
-
-class TestInit(TestOutputOptions):
-
     def test_initial_values(self):
         self.assertEqual(self.system_under_test.position_precision, 3)
         self.assertEqual(self.system_under_test.feed_precision, 2)
@@ -17,9 +14,6 @@ class TestInit(TestOutputOptions):
 
     def test_initial_validation(self):
         self.assertSuccess(self.system_under_test)
-
-
-class TestValidation(TestOutputOptions):
 
     def test_validation_position_precision(self):
         self.system_under_test.position_precision = 0

@@ -7,9 +7,6 @@ class TestToolOptions(ValidationAsserter):
     def setUp(self):
         self.system_under_test = ToolOptions()
 
-
-class TestInit(TestToolOptions):
-
     def test_initial_values(self):
         self.assertEqual(self.system_under_test.tool_flutes, 4)
         self.assertEqual(self.system_under_test.tool_diameter, 6)
@@ -30,9 +27,6 @@ class TestInit(TestToolOptions):
 
     def test_initial_validation(self):
         self.assertSuccess(self.system_under_test)
-
-
-class TestValidation(TestToolOptions):
 
     def test_validation_tool_flutes(self):
         self.system_under_test.tool_flutes = 0
