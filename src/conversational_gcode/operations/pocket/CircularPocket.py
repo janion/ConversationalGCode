@@ -11,10 +11,9 @@ from math import ceil, isclose
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import helical_plunge, spiral_out
 from conversational_gcode.gcodes.GCodes import GCode, G0, G2, G3
-from conversational_gcode.Jsonable import Jsonable
 
 
-class CircularPocket(Jsonable):
+class CircularPocket:
     """
     Operation to create a circular pocket.
 
@@ -205,3 +204,14 @@ class CircularPocket(Jsonable):
         commands.append(
             finishing_command(x=position[0], y=position[1], i=relative_centre, f=tool_options.finishing_feed_rate,
                               comment='Complete circle at final radius'))
+
+    def to_json(self):
+        return (
+                '{' +
+                f'"centre":[{self._centre[0]},{self._centre[1]}],' +
+                f'"start_depth":{self._start_depth},' +
+                f'"diameter":{self._diameter},' +
+                f'"depth":{self._depth},' +
+                f'"finishing_pass":{str(self._finishing_pass).lower()},' +
+                '}'
+        ).replace(',}', '}')

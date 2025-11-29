@@ -7,10 +7,9 @@ Classes:
 """
 
 from conversational_gcode.validate.validation_result import ValidationResult
-from conversational_gcode.Jsonable import Jsonable
 
 
-class JobOptions(Jsonable):
+class JobOptions:
     """
     Options for a job.
     """
@@ -53,3 +52,11 @@ class JobOptions(Jsonable):
         fget=lambda self: self._lead_in,
         fset=_set_lead_in
     )
+
+    def to_json(self):
+        return (
+                '{' +
+                (f'"clearance_height":{self._clearance_height},' if self._clearance_height is not None else '') +
+                (f'"lead_in":{self._lead_in}' if self._lead_in is not None else '') +
+                '}'
+        ).replace(',}', '}')

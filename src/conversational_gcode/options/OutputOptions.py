@@ -7,10 +7,9 @@ Classes:
 """
 
 from conversational_gcode.validate.validation_result import ValidationResult
-from conversational_gcode.Jsonable import Jsonable
 
 
-class OutputOptions(Jsonable):
+class OutputOptions:
     """
     Options for printing the GCode.
     """
@@ -69,3 +68,12 @@ class OutputOptions(Jsonable):
         fget=lambda self: self._speed_precision,
         fset=_set_speed_precision
     )
+
+    def to_json(self):
+        return (
+            '{' +
+            (f'"position_precision":{self._position_precision},' if self._position_precision is not None else '') +
+            (f'"feed_precision":{self._feed_precision},' if self._feed_precision is not None else '') +
+            (f'"speed_precision":{self._speed_precision}' if self._speed_precision is not None else '') +
+            '}'
+        ).replace(',}', '}')

@@ -8,10 +8,9 @@ Classes:
 
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.gcodes.GCodes import GCode, G80, G81, G82, G83, CyclePosition
-from conversational_gcode.Jsonable import Jsonable
 
 
-class Drill(Jsonable):
+class Drill:
     """
     Operation to drill multiple holes in a canned cycle.
 
@@ -60,7 +59,7 @@ class Drill(Jsonable):
         return results
 
     def _set_centres(self, value):
-        self._centres = value
+        self._centres = [] if value is None else value
 
     def _set_depth(self, value):
         self._depth = value
@@ -123,3 +122,15 @@ class Drill(Jsonable):
 
         commands.append(G80(comment='End drilling cycle'))
         commands.append(GCode(''))
+
+    def to_json(self):
+        centres_list = ','.join([f'[{centre[0]},{centre[1]}]' for centre in self._centres])
+        return (
+            '{' +
+            f'"centres":[{centres_list}],' +
+            (f'"depth":{self._depth},' if self._depth is not None else '') +
+            (f'"start_depth":{self._start_depth},' if self._start_depth is not None else '') +
+            (f'"peck_interval":{self._peck_interval},' if self._peck_interval is not None else '') +
+            (f'"dwell":{self._dwell}' if self._dwell is not None else '') +
+            '}'
+        ).replace(',}', '}').replace(',]', ']')
