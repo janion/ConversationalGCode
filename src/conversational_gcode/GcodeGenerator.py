@@ -97,8 +97,10 @@ class GcodeGenerator:
         # commands = CommandPrinter(self._options.output)
         commands = []
 
-        for line in json.dumps(dict(self._options), indent=2).split('\n'):
+        for line in json.dumps(json.loads(self._options.to_json()), indent=2).split('\n'):
             commands.append(GCode(line))
+
+        commands.append(GCode())
 
         position[2] = self._options.job.clearance_height
         commands.append(G0(z=position[2], comment='Clear tool'))

@@ -222,6 +222,6 @@ class ToolOptions:
             (f'"max_helix_angle":{self._max_helix_angle},' if self._max_helix_angle is not None else '') +
             (f'"finishing_pass":{self._finishing_pass},' if self._finishing_pass is not None else '') +
             (f'"finishing_feed_rate":{self._finishing_feed_rate},' if self._finishing_feed_rate is not None else '') +
-            (f'"finishing_climb":{self._finishing_climb}' if self._finishing_climb is not None else '') +
+            (f'"finishing_climb":{str(self._finishing_climb).lower()}' if self._finishing_climb is not None else '') +
             '}'
         ).replace(',}', '}')
