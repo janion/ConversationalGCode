@@ -192,9 +192,9 @@ class CircularPocket:
         relative_centre = (path_radius + tool_options.finishing_pass / 2) * relative_centre_multiplier
 
         if tool_options.finishing_climb:
-            finishing_command = G2
-        else:
             finishing_command = G3
+        else:
+            finishing_command = G2
 
         commands.append(
             finishing_command(x=position[0], y=position[1], i=relative_centre, f=tool_options.finishing_feed_rate,

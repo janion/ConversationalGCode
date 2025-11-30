@@ -9,7 +9,7 @@
 ;     "max_helix_stepover": 2,
 ;     "max_helix_angle": 3,
 ;     "finishing_pass": 0.5,
-;     "finishing_climb": true
+;     "finishing_climb": false
 ;   },
 ;   "job": {
 ;     "clearance_height": 10,
@@ -168,8 +168,8 @@ G2 X21.500 Y13.000 I9.500 F100.00;
 G2 X2.500 Y13.000 I-9.500 F100.00; Complete circle at final radius
 ;
 ; Finishing pass of 0.500mm
-G3 X22.000 Y13.000 I9.750 F100.00; Spiral out to finishing pass
-G3 X22.000 Y13.000 I-10.000 F100.00; Complete circle at final radius
+G2 X22.000 Y13.000 I9.750 F100.00; Spiral out to finishing pass
+G2 X22.000 Y13.000 I-10.000 F100.00; Complete circle at final radius
 G0 X21.000 Z-29.750; Move cutter away from wall
 G0 Z10.000; Clear tool
 ;

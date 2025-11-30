@@ -37,3 +37,19 @@ class TestCircularPocket(EndToEndTester):
         )
 
         self.assertFileMatches('resources/e2e/circular_pocket/deep_wide_position_finishing.nc')
+
+    def test_deep_wide_position_finishing_conventional(self):
+        self.options.tool.finishing_pass = 0.5
+        self.options.tool.finishing_climb = False
+
+        self.gcode_generator.add_operation(
+            CircularPocket(
+                centre=[12, 13],
+                start_depth=-10,
+                diameter=26,
+                depth=20,
+                finishing_pass=True
+            )
+        )
+
+        self.assertFileMatches('resources/e2e/circular_pocket/deep_wide_position_finishing_conventional.nc')
