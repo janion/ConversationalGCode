@@ -94,7 +94,7 @@ class GcodeGenerator:
 
         if position is None:
             position = [0, 0, 0]
-        # commands = CommandPrinter(self._options.output)
+        # commands = _CommandPrinter(self._options.output)
         commands = []
 
         for line in json.dumps(json.loads(self._options.to_json()), indent=2).split('\n'):

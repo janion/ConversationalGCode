@@ -1,0 +1,205 @@
+; {
+;   "tool": {
+;     "tool_flutes": 4,
+;     "tool_diameter": 6,
+;     "spindle_speed": 1000,
+;     "feed_rate": 100,
+;     "max_stepover": 2,
+;     "max_stepdown": 3,
+;     "max_helix_stepover": 2,
+;     "max_helix_angle": 3,
+;     "finishing_climb": true
+;   },
+;   "job": {
+;     "clearance_height": 10,
+;     "lead_in": 0.25
+;   },
+;   "output": {
+;     "position_precision": 3,
+;     "feed_precision": 2,
+;     "speed_precision": 1
+;   }
+; }
+;
+G0 Z10.000; Clear tool
+;
+M3 S1000.0; Start spindle
+;
+G0 X10.000 Y15.000; Move to starting position
+G0 Z-2.750; Move to hole start depth
+; Clear out circle at edge of pocket
+G0 X12.000 Y15.000 Z-2.750; Move to hole start position
+; Helical interpolation down to step depth
+G2 X12.000 Y15.000 Z-3.406 I-2.000 F100.00;
+G2 X12.000 Y15.000 Z-4.062 I-2.000 F100.00;
+G2 X12.000 Y15.000 Z-4.719 I-2.000 F100.00;
+G2 X12.000 Y15.000 Z-5.375 I-2.000 F100.00;
+G2 X12.000 Y15.000 Z-5.375 I-2.000 F100.00; Final full pass at depth
+; Spiral out to final radius in 1.667mm passes
+G2 X6.333 Y15.000 I-2.833 F100.00;
+G2 X13.667 Y15.000 I3.667 F100.00;
+G2 X4.667 Y15.000 I-4.500 F100.00;
+G2 X15.333 Y15.000 I5.333 F100.00;
+G2 X3.000 Y15.000 I-6.167 F100.00;
+G2 X17.000 Y15.000 I7.000 F100.00;
+G2 X3.000 Y15.000 I-7.000 F100.00; Complete circle at final radius
+; Clear nearest corners in 1.450mm passes
+; Clear first corner
+G0 Z-5.125;
+G0 X17.000 Y15.000;
+G0 Z-5.375;
+G1 X17.000 Y10.267 F100.00;
+G2 X14.733 Y8.000 I-7.000 J4.733 F100.00;
+G1 X10.000 Y8.000 F100.00;
+G0 Z-5.125;
+G0 X17.000 Y10.267;
+G0 Z-5.375;
+G1 X17.000 Y8.000 F100.00;
+G1 X14.733 Y8.000 F100.00;
+; Clear second corner
+G0 Z-5.125;
+G0 X10.000 Y8.000;
+G0 Z-5.375;
+G1 X5.267 Y8.000 F100.00;
+G2 X3.000 Y10.267 I4.733 J7.000 F100.00;
+G1 X3.000 Y15.000 F100.00;
+G0 Z-5.125;
+G0 X5.267 Y8.000;
+G0 Z-5.375;
+G1 X3.000 Y8.000 F100.00;
+G1 X3.000 Y10.267 F100.00;
+; Clear centre in 2.000mm passes
+G0 Z-5.125; Move to arc start
+G0 X3.000 Y15.000;
+G0 Z-5.375;
+G1 X3.000 Y20.657 F100.00;
+G2 X17.000 Y20.657 I7.000 J-5.657 F100.00;
+G1 X17.000 Y15.000 F100.00;
+G0 Z-5.125;
+G0 X3.000 Y20.657;
+G0 Z-5.375;
+G1 X3.000 Y23.485 F100.00;
+G2 X17.000 Y23.485 I7.000 J-8.485 F100.00;
+G1 X17.000 Y20.657 F100.00;
+G0 Z-5.125;
+G0 X3.000 Y23.485;
+G0 Z-5.375;
+G1 X3.000 Y25.954 F100.00;
+G2 X17.000 Y25.954 I7.000 J-10.954 F100.00;
+G1 X17.000 Y23.485 F100.00;
+G0 Z-5.125;
+G0 X3.000 Y25.954;
+G0 Z-5.375;
+G1 X3.000 Y28.266 F100.00;
+G2 X17.000 Y28.266 I7.000 J-13.266 F100.00;
+G1 X17.000 Y25.954 F100.00;
+G0 Z-5.125;
+G0 X3.000 Y28.266;
+G0 Z-5.375;
+G1 X3.000 Y30.492 F100.00;
+G2 X17.000 Y30.492 I7.000 J-15.492 F100.00;
+G1 X17.000 Y28.266 F100.00;
+G0 Z-5.125;
+G0 X3.000 Y30.492;
+G0 Z-5.375;
+; Clear far corners in 1.385mm passes
+; First far corner
+G1 X3.000 Y32.000 F100.00;
+G1 X10.000 Y32.000 F100.00;
+; Second far corner
+G0 Z-5.125; Move to arc start
+G0 X10.000 Y32.000;
+G0 Z-5.375;
+G1 X17.000 Y32.000 F100.00;
+G1 X17.000 Y30.492 F100.00;
+G0 X16.000 Y29.492 Z-5.125; Clear wall
+; Clear out circle at edge of pocket
+G0 X12.000 Y15.000 Z-5.375; Move to hole start position
+; Helical interpolation down to step depth
+G2 X12.000 Y15.000 Z-6.031 I-2.000 F100.00;
+G2 X12.000 Y15.000 Z-6.688 I-2.000 F100.00;
+G2 X12.000 Y15.000 Z-7.344 I-2.000 F100.00;
+G2 X12.000 Y15.000 Z-8.000 I-2.000 F100.00;
+G2 X12.000 Y15.000 Z-8.000 I-2.000 F100.00; Final full pass at depth
+; Spiral out to final radius in 1.667mm passes
+G2 X6.333 Y15.000 I-2.833 F100.00;
+G2 X13.667 Y15.000 I3.667 F100.00;
+G2 X4.667 Y15.000 I-4.500 F100.00;
+G2 X15.333 Y15.000 I5.333 F100.00;
+G2 X3.000 Y15.000 I-6.167 F100.00;
+G2 X17.000 Y15.000 I7.000 F100.00;
+G2 X3.000 Y15.000 I-7.000 F100.00; Complete circle at final radius
+; Clear nearest corners in 1.450mm passes
+; Clear first corner
+G0 Z-7.750;
+G0 X17.000 Y15.000;
+G0 Z-8.000;
+G1 X17.000 Y10.267 F100.00;
+G2 X14.733 Y8.000 I-7.000 J4.733 F100.00;
+G1 X10.000 Y8.000 F100.00;
+G0 Z-7.750;
+G0 X17.000 Y10.267;
+G0 Z-8.000;
+G1 X17.000 Y8.000 F100.00;
+G1 X14.733 Y8.000 F100.00;
+; Clear second corner
+G0 Z-7.750;
+G0 X10.000 Y8.000;
+G0 Z-8.000;
+G1 X5.267 Y8.000 F100.00;
+G2 X3.000 Y10.267 I4.733 J7.000 F100.00;
+G1 X3.000 Y15.000 F100.00;
+G0 Z-7.750;
+G0 X5.267 Y8.000;
+G0 Z-8.000;
+G1 X3.000 Y8.000 F100.00;
+G1 X3.000 Y10.267 F100.00;
+; Clear centre in 2.000mm passes
+G0 Z-7.750; Move to arc start
+G0 X3.000 Y15.000;
+G0 Z-8.000;
+G1 X3.000 Y20.657 F100.00;
+G2 X17.000 Y20.657 I7.000 J-5.657 F100.00;
+G1 X17.000 Y15.000 F100.00;
+G0 Z-7.750;
+G0 X3.000 Y20.657;
+G0 Z-8.000;
+G1 X3.000 Y23.485 F100.00;
+G2 X17.000 Y23.485 I7.000 J-8.485 F100.00;
+G1 X17.000 Y20.657 F100.00;
+G0 Z-7.750;
+G0 X3.000 Y23.485;
+G0 Z-8.000;
+G1 X3.000 Y25.954 F100.00;
+G2 X17.000 Y25.954 I7.000 J-10.954 F100.00;
+G1 X17.000 Y23.485 F100.00;
+G0 Z-7.750;
+G0 X3.000 Y25.954;
+G0 Z-8.000;
+G1 X3.000 Y28.266 F100.00;
+G2 X17.000 Y28.266 I7.000 J-13.266 F100.00;
+G1 X17.000 Y25.954 F100.00;
+G0 Z-7.750;
+G0 X3.000 Y28.266;
+G0 Z-8.000;
+G1 X3.000 Y30.492 F100.00;
+G2 X17.000 Y30.492 I7.000 J-15.492 F100.00;
+G1 X17.000 Y28.266 F100.00;
+G0 Z-7.750;
+G0 X3.000 Y30.492;
+G0 Z-8.000;
+; Clear far corners in 1.385mm passes
+; First far corner
+G1 X3.000 Y32.000 F100.00;
+G1 X10.000 Y32.000 F100.00;
+; Second far corner
+G0 Z-7.750; Move to arc start
+G0 X10.000 Y32.000;
+G0 Z-8.000;
+G1 X17.000 Y32.000 F100.00;
+G1 X17.000 Y30.492 F100.00;
+G0 X16.000 Y29.492 Z-7.750; Clear wall
+G0 Z10.000; Clear tool
+;
+M5; Stop spindle
+M2; End program

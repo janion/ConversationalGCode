@@ -204,7 +204,7 @@ class RectangularPocket:
             self._clear_centre(pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options)
 
             # Clear far corners
-            self._clear_far_corners(pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, position, operation_commands, options)
+            self._clear_far_corners(pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options)
 
             if not isclose(deepest_cut_depth, final_depth, abs_tol=pow(10, -precision)):
                 # Clear wall
@@ -347,30 +347,10 @@ class RectangularPocket:
 
         total_arc_distance = pocket_clearing_size[1] - 2 * final_clearing_radius
         if isclose(total_arc_distance, 0, abs_tol=pow(10, -precision)):
-            operation_commands.append(GCode('Clear furthest corners'))
-            # Repeat existing corner commands
-            rotation = Transformation(
-                [
-                    lambda x, y, z: (y + pocket_clearing_centre[0] - pocket_clearing_centre[1]) if y is not None else None,
-                    lambda x, y, z: (pocket_clearing_centre[0] + pocket_clearing_centre[1] - x) if x is not None else None,
-                    lambda x, y, z: z if z is not None else None
-                ],
-                [
-                    lambda x, y, z: y if y is not None else None,
-                    lambda x, y, z: -x if x is not None else None,
-                    lambda x, y, z: z if z is not None else None
-                ]
-            )
-            for corner_command in corner_commands:
-                operation_commands.append(deepcopy(corner_command).transform(rotation).transform(rotation))
-
-            new_position = rotation.transform_absolute(rotation.transform_absolute(position))
-            position[0] = new_position[0]
-            position[1] = new_position[1]
             return
 
         arcing_stepover = total_arc_distance / ceil(total_arc_distance / tool_options.max_stepover)
-        operation_commands.append(GCode(f'Clear furthest corners in {arcing_stepover:.{precision}f}mm passes'))
+        operation_commands.append(GCode(f'Clear centre in {arcing_stepover:.{precision}f}mm passes'))
 
         # Move to start position
         operation_commands.extend(
@@ -418,11 +398,35 @@ class RectangularPocket:
 
             last_cartesian_stepover = total_cartesian_stepover
 
-    def _clear_far_corners(self, pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, position, operation_commands, options):
+    def _clear_far_corners(self, pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options):
         tool_options = options.tool
         precision = options.output.position_precision
 
         final_arcing_radius = pocket_clearing_size[1] - final_clearing_radius
+
+        if isclose(final_arcing_radius, final_clearing_radius, abs_tol=pow(10, -precision)):
+            operation_commands.append(GCode('Clear furthest corners'))
+            # Repeat existing corner commands
+            rotation = Transformation(
+                [
+                    lambda x, y, z: (y + pocket_clearing_centre[0] - pocket_clearing_centre[1]) if y is not None else None,
+                    lambda x, y, z: (pocket_clearing_centre[0] + pocket_clearing_centre[1] - x) if x is not None else None,
+                    lambda x, y, z: z if z is not None else None
+                ],
+                [
+                    lambda x, y, z: y if y is not None else None,
+                    lambda x, y, z: -x if x is not None else None,
+                    lambda x, y, z: z if z is not None else None
+                ]
+            )
+            for corner_command in corner_commands:
+                operation_commands.append(deepcopy(corner_command).transform(rotation).transform(rotation))
+
+            new_position = rotation.transform_absolute(rotation.transform_absolute(position))
+            position[0] = new_position[0]
+            position[1] = new_position[1]
+            return
+
         radial_distance_to_corner = sqrt(final_arcing_radius * final_arcing_radius + final_clearing_radius * final_clearing_radius) - final_arcing_radius
         radial_stepover = radial_distance_to_corner / ceil(radial_distance_to_corner / tool_options.max_stepover)
 
@@ -438,19 +442,6 @@ class RectangularPocket:
         ])
 
         # Move to start position
-        tl_corner_commands.extend(
-            rapid_with_z_hop(
-                position=position,
-                new_position=[
-                    pocket_clearing_centre[0] - final_clearing_radius,
-                    pocket_clearing_centre[1] + sqrt(final_arcing_radius * final_arcing_radius - pocket_clearing_size[0] * pocket_clearing_size[0] / 4),
-                    position[2]
-                ],
-                job_options=options.job,
-                comment='Move to arc start'
-            )[0]
-        )
-
         self._record_future_rapid(
             tr_corner_commands_and_positions,
             [*tr_corner_commands_and_positions[-1][0]],

@@ -12,10 +12,11 @@ class TestOperationsRapidWithZHop(TestCase):
     def setUp(self):
         self.job_options = JobOptions()
 
-    def test_origin_to_xyz(self):
+    def test_origin_to_xy(self):
         comment = "Weeeeee!"
         position = [0, 0, 0]
-        end = [1, 2, 3]
+        start = [*position]
+        end = [1, 2, 0]
 
         commands, positions = rapid_with_z_hop(
             position,
@@ -25,24 +26,88 @@ class TestOperationsRapidWithZHop(TestCase):
         )
 
         # Check commands
-        self.assertEqual(2, len(commands))
+        self.assertEqual(3, len(commands))
         self.assertEqual(
-            G0(x=0.5, y=1, z=3 + self.job_options.lead_in, comment=comment),
+            G0(z=end[2] + self.job_options.lead_in, comment=comment),
             commands[0]
         )
-        self.assertEqual(G0(x=1, y=2, z=3), commands[1])
+        self.assertEqual(G0(x=end[0], y=end[1]), commands[1])
+        self.assertEqual(G0(z=end[2]), commands[2])
 
         # Check final position
         self.assertEqual(end, position)
 
         # Check intermediate positions
-        self.assertEqual(2, len(commands))
-        self.assertEqual([0.5, 1, 3 + self.job_options.lead_in], positions[0])
-        self.assertEqual(end, positions[1])
+        self.assertEqual(3, len(commands))
+        self.assertEqual([start[0], start[1], end[2] + self.job_options.lead_in], positions[0])
+        self.assertEqual([end[0], end[1], end[2] + self.job_options.lead_in], positions[1])
+        self.assertEqual(end, positions[2])
 
-    def test_nowhere_to_xyz(self):
+    def test_nowhere_to_xy(self):
         comment = "Weeeeee!"
         position = [None, None, None]
+        end = [1, 2, 0]
+
+        commands, positions = rapid_with_z_hop(
+            position,
+            end,
+            self.job_options,
+            comment
+        )
+
+        # Check commands
+        self.assertEqual(3, len(commands))
+        self.assertEqual(
+            G0(z=end[2] + self.job_options.lead_in, comment=comment),
+            commands[0]
+        )
+        self.assertEqual(G0(x=end[0], y=end[1]), commands[1])
+        self.assertEqual(G0(z=end[2]), commands[2])
+
+        # Check final position
+        self.assertEqual(end, position)
+
+        # Check intermediate positions
+        self.assertEqual(3, len(commands))
+        self.assertEqual([end[0], end[1], end[2] + self.job_options.lead_in], positions[0])
+        self.assertEqual([end[0], end[1], end[2] + self.job_options.lead_in], positions[1])
+        self.assertEqual(end, positions[2])
+
+    def test_somewhere_to_xy_z_raise(self):
+        comment = "Weeeeee!"
+        position = [1, 2, 3]
+        start = [*position]
+        end = [11, 12, 13]
+
+        commands, positions = rapid_with_z_hop(
+            position,
+            end,
+            self.job_options,
+            comment
+        )
+
+        # Check commands
+        self.assertEqual(3, len(commands))
+        self.assertEqual(
+            G0(z=end[2] + self.job_options.lead_in, comment=comment),
+            commands[0]
+        )
+        self.assertEqual(G0(x=end[0], y=end[1]), commands[1])
+        self.assertEqual(G0(z=end[2]), commands[2])
+
+        # Check final position
+        self.assertEqual(end, position)
+
+        # Check intermediate positions
+        self.assertEqual(3, len(commands))
+        self.assertEqual([start[0], start[1], end[2] + self.job_options.lead_in], positions[0])
+        self.assertEqual([end[0], end[1], end[2] + self.job_options.lead_in], positions[1])
+        self.assertEqual(end, positions[2])
+
+    def test_somewhere_to_xy_z_drop(self):
+        comment = "Weeeeee!"
+        position = [11, 21, 13]
+        start = [*position]
         end = [1, 2, 3]
 
         commands, positions = rapid_with_z_hop(
@@ -53,20 +118,44 @@ class TestOperationsRapidWithZHop(TestCase):
         )
 
         # Check commands
-        self.assertEqual(2, len(commands))
+        self.assertEqual(3, len(commands))
         self.assertEqual(
-            G0(x=1, y=2, z=3 + self.job_options.lead_in, comment=comment),
+            G0(z=start[2] + self.job_options.lead_in, comment=comment),
             commands[0]
         )
-        self.assertEqual(G0(x=1, y=2, z=3), commands[1])
+        self.assertEqual(G0(x=end[0], y=end[1]), commands[1])
+        self.assertEqual(G0(z=end[2]), commands[2])
 
         # Check final position
         self.assertEqual(end, position)
 
         # Check intermediate positions
-        self.assertEqual(2, len(commands))
-        self.assertEqual([1, 2, 3 + self.job_options.lead_in], positions[0])
-        self.assertEqual(end, positions[1])
+        self.assertEqual(3, len(commands))
+        self.assertEqual([start[0], start[1], start[2] + self.job_options.lead_in], positions[0])
+        self.assertEqual([end[0], end[1], start[2] + self.job_options.lead_in], positions[1])
+        self.assertEqual(end, positions[2])
+
+    def test_somewhere_to_same_place(self):
+        comment = "Weeeeee!"
+        position = [1, 2, 3]
+        start = [*position]
+        end = [*position]
+
+        commands, positions = rapid_with_z_hop(
+            position,
+            end,
+            self.job_options,
+            comment
+        )
+
+        # Check commands
+        self.assertEqual(0, len(commands))
+
+        # Check final position
+        self.assertEqual(end, position)
+
+        # Check intermediate positions
+        self.assertEqual(0, len(positions))
 
 
 class TestOperationsHelicalPlunge(TestCase):

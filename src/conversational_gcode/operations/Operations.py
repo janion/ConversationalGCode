@@ -33,20 +33,35 @@ def rapid_with_z_hop(
     :param comment: Optional comment to add to the first move.
     :return: The commands to perform the move, and the positions (mid and final, not start)
     """
-    mid_position = [
-        (position[0] + (new_position[0] - position[0]) / 2) if position[0] is not None else new_position[0],
-        (position[1] + (new_position[1] - position[1]) / 2) if position[1] is not None else new_position[1],
-        (max(new_position[2], position[2]) + job_options.lead_in) if position[2] is not None else new_position[2] + job_options.lead_in
-    ]
+    if position == new_position:
+        return [], []
 
-    rapid_positions = []
-    rapid_commands = []
-    rapid_positions.append(mid_position)
-    rapid_commands.append(
-        G0(x=mid_position[0], y=mid_position[1], z=mid_position[2], comment=comment)
-    )
-    rapid_positions.append(new_position)
-    rapid_commands.append(G0(x=new_position[0], y=new_position[1], z=new_position[2]))
+    retract_height = max(new_position[2], position[2] if position[2] is not None else new_position[2]) + job_options.lead_in
+
+    rapid_commands = [
+        G0(
+            z=retract_height,
+            comment=comment
+        ),
+        G0(
+            x=new_position[0] if position[0] is not None else new_position[0],
+            y=new_position[1] if position[1] is not None else new_position[1]
+        ),
+        G0(z=new_position[2])
+    ]
+    rapid_positions = [
+        [
+            position[0] if position[0] is not None else new_position[0],
+            position[1] if position[1] is not None else new_position[1],
+            retract_height
+        ],
+        [
+            new_position[0],
+            new_position[1],
+            retract_height
+        ],
+        [*new_position]
+    ]
 
     position[0:3] = new_position
 
