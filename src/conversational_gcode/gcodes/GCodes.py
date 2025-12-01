@@ -55,6 +55,9 @@ class GCode:
 
         return self.comment == __o.comment
 
+    def __repr__(self):
+        return f'GCode(comment={self.comment})'
+
 
 @dataclass
 class M2(GCode):
@@ -74,6 +77,9 @@ class M2(GCode):
             return False
 
         return isinstance(__o, M2)
+
+    def __repr__(self):
+        return f'M2(comment={self.comment})'
 
 
 @dataclass
@@ -102,6 +108,9 @@ class M3(GCode):
 
         return self.s == __o.s
 
+    def __repr__(self):
+        return f'M3(s={self.s}, comment={self.comment})'
+
 
 @dataclass
 class M5(GCode):
@@ -121,6 +130,9 @@ class M5(GCode):
             return False
 
         return isinstance(__o, M5)
+
+    def __repr__(self):
+        return f'M5(comment={self.comment})'
 
 
 @dataclass
@@ -166,6 +178,9 @@ class G0(GCode):
                 self.y == __o.y and
                 self.z == __o.z)
 
+    def __repr__(self):
+        return f'G0(x={self.x}, y={self.y}, z={self.z}, comment={self.comment})'
+
 
 @dataclass
 class G1(G0):
@@ -199,6 +214,9 @@ class G1(G0):
             return False
 
         return self.f == __o.f
+
+    def __repr__(self):
+        return f'G1(x={self.x}, y={self.y}, z={self.z}, f={self.f}, comment={self.comment})'
 
 
 @dataclass
@@ -261,6 +279,15 @@ class G2(G1):
                 self.j == __o.j and
                 self.k == __o.k)
 
+    def __repr__(self):
+        return (
+            'G2(' +
+            f'x={self.x}, y={self.y}, z={self.z}, '+
+            f'i={self.i}, j={self.j}, k={self.k}, ' +
+            f'f={self.f}, comment={self.comment}' +
+            ')'
+        )
+
 
 @dataclass
 class G3(G2):
@@ -290,6 +317,15 @@ class G3(G2):
 
         return isinstance(__o, G3)
 
+    def __repr__(self):
+        return (
+            'G3(' +
+            f'x={self.x}, y={self.y}, z={self.z}, '+
+            f'i={self.i}, j={self.j}, k={self.k}, ' +
+            f'f={self.f}, comment={self.comment}' +
+            ')'
+        )
+
 
 class G80(GCode):
     """
@@ -308,6 +344,9 @@ class G80(GCode):
             return False
 
         return isinstance(__o, G80)
+
+    def __repr__(self):
+        return f'G80(comment={self.comment})'
 
 
 @dataclass
@@ -344,6 +383,9 @@ class G81(G1):
             return False
 
         return self.r == __o.r
+
+    def __repr__(self):
+        return f'G81(x={self.x}, y={self.y}, z={self.z}, r={self.r}, f={self.f}, comment={self.comment})'
 
 
 @dataclass
@@ -382,6 +424,9 @@ class G82(G81):
             return False
 
         return self.p == __o.p
+
+    def __repr__(self):
+        return f'G82(x={self.x}, y={self.y}, z={self.z}, r={self.r}, p={self.p}, f={self.f}, comment={self.comment})'
 
 
 @dataclass
@@ -423,6 +468,15 @@ class G83(G82):
 
         return self.q == __o.q
 
+    def __repr__(self):
+        return (
+            'G83(' +
+            f'x={self.x}, y={self.y}, z={self.z}, ' +
+            f'r={self.r}, p={self.p}, q={self.q}, ' +
+            f'f={self.f}, comment={self.comment}' +
+            ')'
+        )
+
 
 @dataclass
 class CyclePosition(G0):
@@ -454,3 +508,6 @@ class CyclePosition(G0):
             return False
 
         return isinstance(__o, CyclePosition)
+
+    def __repr__(self):
+        return f'CyclePosition(x={self.x}, y={self.y}, z={self.z}, comment={self.comment})'

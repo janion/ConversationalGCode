@@ -39,7 +39,7 @@ class _CommandPrinter:
         self.commands.extend(commands)
 
     def __iter__(self):
-        return [].__iter__()
+        return self.commands.__iter__()
 
 
 class GcodeGenerator:
@@ -120,3 +120,11 @@ class GcodeGenerator:
         commands.append(M2(comment='End program'))
 
         return commands
+
+    def __repr__(self):
+        return (
+            'GcodeGenerator(' +
+            f'options={self._options!r}, ' +
+            f'operations={self._operations!r}' +
+            ')'
+        )

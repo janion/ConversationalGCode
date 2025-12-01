@@ -43,3 +43,11 @@ class Transformation:
         new_y = self.relative[1](*point)
         new_z = self.relative[2](*point)
         return [new_x, new_y, new_z]
+
+    def __repr__(self):
+        return (
+            'Transformation(' +
+            f'absolute={self.absolute!r}, ' +
+            f'relative={self.relative!r}' +
+            ')'
+        )

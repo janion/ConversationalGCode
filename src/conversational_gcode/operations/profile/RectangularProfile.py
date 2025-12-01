@@ -218,3 +218,13 @@ class RectangularProfile:
                 f'"is_climb":{str(self._is_climb).lower()},' +
                 '}'
         ).replace(',}', '}')
+
+    def __repr__(self):
+        return (
+            'RectangularProfile(' +
+            f'width={self.width}, length={self.length}, ' +
+            f'centre={self.centre}, corner={self.corner}, ' +
+            f'depth={self.depth}, start_depth={self.start_depth}, ' +
+            f'is_inner={self.is_inner}, is_climb={self.is_climb}' +
+            ')'
+        )

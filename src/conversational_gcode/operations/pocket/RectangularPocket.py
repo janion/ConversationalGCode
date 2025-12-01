@@ -579,3 +579,13 @@ class RectangularPocket:
                 f'"finishing_pass":{str(self._finishing_pass).lower()},' +
                 '}'
         ).replace(',}', '}')
+
+    def __repr__(self):
+        return (
+            'RectangularPocket(' +
+            f'width={self.width}, length={self.length}, ' +
+            f'centre={self.centre}, corner={self.corner}, ' +
+            f'depth={self.depth}, start_depth={self.start_depth}, ' +
+            f'finishing_pass={self.finishing_pass}' +
+            ')'
+        )

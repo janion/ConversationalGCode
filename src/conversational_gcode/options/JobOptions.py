@@ -60,3 +60,6 @@ class JobOptions:
                 (f'"lead_in":{self._lead_in}' if self._lead_in is not None else '') +
                 '}'
         ).replace(',}', '}')
+
+    def __repr__(self):
+        return f'JobOptions(clearance_height={self.clearance_height}, lead_in={self.lead_in})'

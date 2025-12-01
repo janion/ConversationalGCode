@@ -64,3 +64,6 @@ class Options:
                 f'"output":{self.output.to_json()}' +
                 '}'
         )
+
+    def __repr__(self):
+        return f'Options(tool={self.tool!r}, job={self.job!r}, output={self.output!r})'

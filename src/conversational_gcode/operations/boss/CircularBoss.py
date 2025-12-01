@@ -216,3 +216,13 @@ class CircularBoss:
                 f'"finishing_pass":{str(self._finishing_pass).lower()},' +
                 '}'
         ).replace(',}', '}')
+
+    def __repr__(self):
+        return (
+            'CircularBoss(' +
+            f'centre={self.centre}, ' +
+            f'initial_diameter={self.initial_diameter}, final_diameter={self.final_diameter}, ' +
+            f'height={self.height}, top_height={self.top_height}, ' +
+            f'finishing_pass={self.finishing_pass}' +
+            ')'
+        )

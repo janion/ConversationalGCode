@@ -225,3 +225,21 @@ class ToolOptions:
             (f'"finishing_climb":{str(self._finishing_climb).lower()}' if self._finishing_climb is not None else '') +
             '}'
         ).replace(',}', '}')
+
+    def __repr__(self):
+        return (
+            'OutputOptions(' +
+            f'tool_flutes={self._tool_flutes}, ' +
+            f'tool_diameter={self._tool_diameter}, ' +
+            f'spindle_speed={self._spindle_speed}, ' +
+            f'feed_rate={self._feed_rate}, ' +
+            f'max_stepover={self._max_stepover}, ' +
+            f'max_stepdown={self._max_stepdown}, ' +
+            f'max_helix_stepover={self._max_helix_stepover}, ' +
+            f'helix_feed_rate={self._helix_feed_rate}, ' +
+            f'max_helix_angle={self._max_helix_angle}, ' +
+            f'finishing_pass={self._finishing_pass}, ' +
+            f'finishing_feed_rate={self._finishing_feed_rate}, ' +
+            f'finishing_climb={self._finishing_climb}' +
+            ')'
+        )

@@ -153,3 +153,12 @@ class CircularProfile:
                 f'"is_climb":{str(self._is_climb).lower()},' +
                 '}'
         ).replace(',}', '}')
+
+    def __repr__(self):
+        return (
+            'CircularProfile(' +
+            f'diameter={self.diameter}, centre={self.centre}, ' +
+            f'depth={self.depth}, start_depth={self.start_depth}, ' +
+            f'is_inner={self.is_inner}, is_climb={self.is_climb}' +
+            ')'
+        )

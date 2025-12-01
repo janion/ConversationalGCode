@@ -134,3 +134,6 @@ class Drill:
             (f'"dwell":{self._dwell}' if self._dwell is not None else '') +
             '}'
         ).replace(',}', '}').replace(',]', ']')
+
+    def __repr__(self):
+        return f'Drill(centres={self.centres}, depth={self.depth}, start_depth={self.start_depth}, peck_interval={self.peck_interval}, dwell={self.dwell})'

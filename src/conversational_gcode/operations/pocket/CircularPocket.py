@@ -215,3 +215,12 @@ class CircularPocket:
                 f'"finishing_pass":{str(self._finishing_pass).lower()},' +
                 '}'
         ).replace(',}', '}')
+
+    def __repr__(self):
+        return (
+            'CircularPocket(' +
+            f'diameter={self.diameter}, centre={self.centre}, ' +
+            f'depth={self.depth}, start_depth={self.start_depth}, ' +
+            f'finishing_pass={self.finishing_pass}' +
+            ')'
+        )

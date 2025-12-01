@@ -77,3 +77,12 @@ class OutputOptions:
             (f'"speed_precision":{self._speed_precision}' if self._speed_precision is not None else '') +
             '}'
         ).replace(',}', '}')
+
+    def __repr__(self):
+        return (
+            'OutputOptions(' +
+            f'position_precision={self.position_precision}, ' +
+            f'feed_precision={self.feed_precision}, ' +
+            f'speed_precision={self.speed_precision}' +
+            ')'
+        )
