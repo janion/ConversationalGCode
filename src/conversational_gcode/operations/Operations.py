@@ -16,14 +16,15 @@ from typing import Tuple
 from conversational_gcode.options.JobOptions import JobOptions
 from conversational_gcode.options.ToolOptions import ToolOptions
 from conversational_gcode.gcodes.GCodes import GCode, G0, G2, G3
+from conversational_gcode.position.Position import Position
 
 
 def rapid_with_z_hop(
-        position: list[float],
-        new_position: list[float],
+        position: Position,
+        new_position: Position,
         job_options: JobOptions,
         comment: str = None
-) -> Tuple[list[GCode], list[float]]:
+) -> Tuple[list[GCode], list[Position]]:
     """
     A rapid move in a triangular path to prevent dragging the tool on the previously cut surface.
     This splits the path
@@ -37,7 +38,7 @@ def rapid_with_z_hop(
     if position == new_position:
         return [], []
 
-    retract_height = max(new_position[2], position[2] if position[2] is not None else new_position[2]) + job_options.lead_in
+    retract_height = max(new_position.z, position.z if position.z is not None else new_position.z) + job_options.lead_in
 
     rapid_commands = [
         G0(
@@ -45,35 +46,37 @@ def rapid_with_z_hop(
             comment=comment
         ),
         G0(
-            x=new_position[0] if position[0] is not None else new_position[0],
-            y=new_position[1] if position[1] is not None else new_position[1]
+            x=new_position.x if position.x is not None else new_position.x,
+            y=new_position.y if position.y is not None else new_position.y
         ),
-        G0(z=new_position[2])
+        G0(z=new_position.z)
     ]
     rapid_positions = [
-        [
-            position[0] if position[0] is not None else new_position[0],
-            position[1] if position[1] is not None else new_position[1],
+        Position(
+            position.x if position.x is not None else new_position.x,
+            position.y if position.y is not None else new_position.y,
             retract_height
-        ],
-        [
-            new_position[0],
-            new_position[1],
+        ),
+        Position(
+            new_position.x,
+            new_position.y,
             retract_height
-        ],
-        [*new_position]
+        ),
+        new_position
     ]
 
-    position[0:3] = new_position
+    position.x = new_position.x
+    position.y = new_position.y
+    position.z = new_position.z
 
     return rapid_commands, rapid_positions
 
 
 def helical_plunge(
-        centre: list[float],
+        centre: Tuple[float, float],
         path_radius: float,
         plunge_depth: float,
-        position: list[float],
+        position: Position,
         commands: list,
         tool_options: ToolOptions,
         precision: float,
@@ -92,10 +95,10 @@ def helical_plunge(
     :param is_climb: True if using a climb cut rather than a conventional cut.
     """
     # Position tool at 3 o'clock from hole centre
-    position[0] = centre[0] + path_radius
-    position[1] = centre[1]
+    position.x = centre[0] + path_radius
+    position.y = centre[1]
     commands.append(
-        G0(x=position[0], y=position[1], z=position[2], comment='Move to hole start position'))
+        G0(x=position.x, y=position.y, z=position.z, comment='Move to hole start position'))
 
     # Helically plunge to depth
     commands.append(GCode('Helical interpolation down to step depth'))
@@ -105,26 +108,26 @@ def helical_plunge(
 
     plunge_per_rev = min(tool_options.max_stepdown, average_plunge_per_rev_using_angle)
 
-    step_depth = position[2] - plunge_depth
+    step_depth = position.z - plunge_depth
 
     if is_inner == is_climb:
         command = G3
     else:
         command = G2
 
-    while not isclose(position[2], step_depth, abs_tol=pow(10, -precision)) and position[2] > step_depth:
-        position[2] = position[2] - plunge_per_rev
+    while not isclose(position.z, step_depth, abs_tol=pow(10, -precision)) and position.z > step_depth:
+        position.z = position.z - plunge_per_rev
         commands.append(
-            command(x=position[0], y=position[1], z=position[2], i=-path_radius, f=tool_options.feed_rate))
+            command(x=position.x, y=position.y, z=position.z, i=-path_radius, f=tool_options.feed_rate))
     commands.append(
-        command(x=position[0], y=position[1], z=position[2], i=-path_radius, f=tool_options.feed_rate,
+        command(x=position.x, y=position.y, z=position.z, i=-path_radius, f=tool_options.feed_rate,
                 comment='Final full pass at depth'))
 
 
 def spiral_out(
         current_radius: float,
         final_path_radius: float,
-        position: list[float],
+        position: Position,
         commands: list,
         tool_options: ToolOptions,
         precision: int) -> None:
@@ -149,22 +152,22 @@ def spiral_out(
     while not isclose(path_radius, final_path_radius, abs_tol=pow(10, -precision)):
         # Semicircle out increasing radius
         path_radius += radial_stepover / 2
-        position[0] -= path_radius * 2
-        commands.append(G2(x=position[0], y=position[1], i=-path_radius, f=tool_options.feed_rate))
+        position.x -= path_radius * 2
+        commands.append(G2(x=position.x, y=position.y, i=-path_radius, f=tool_options.feed_rate))
         # Semi circle maintaining radius
         path_radius += radial_stepover / 2
-        position[0] += path_radius * 2
-        commands.append(G2(x=position[0], y=position[1], i=path_radius, f=tool_options.feed_rate))
+        position.x += path_radius * 2
+        commands.append(G2(x=position.x, y=position.y, i=path_radius, f=tool_options.feed_rate))
     # Complete circle at final radius
-    position[0] -= path_radius * 2
+    position.x -= path_radius * 2
     commands.append(
-        G2(x=position[0], y=position[1], i=-path_radius, f=tool_options.feed_rate, comment='Complete circle at final radius'))
+        G2(x=position.x, y=position.y, i=-path_radius, f=tool_options.feed_rate, comment='Complete circle at final radius'))
 
 
 def spiral_in(
         current_radius: float,
         final_path_radius: float,
-        position: list[float],
+        position: Position,
         commands: list,
         tool_options: ToolOptions,
         precision: int) -> None:
@@ -187,13 +190,13 @@ def spiral_in(
     while not isclose(path_radius, final_path_radius, abs_tol=pow(10, -precision)):
         # Semicircle in decreasing radius
         path_radius -= radial_stepover / 2
-        position[0] -= path_radius * 2
-        commands.append(G3(x=position[0], y=position[1], i=-path_radius, f=tool_options.feed_rate))
+        position.x -= path_radius * 2
+        commands.append(G3(x=position.x, y=position.y, i=-path_radius, f=tool_options.feed_rate))
         # Semi circle maintaining radius
         path_radius -= radial_stepover / 2
-        position[0] += path_radius * 2
-        commands.append(G3(x=position[0], y=position[1], i=path_radius, f=tool_options.feed_rate))
+        position.x += path_radius * 2
+        commands.append(G3(x=position.x, y=position.y, i=path_radius, f=tool_options.feed_rate))
     # Complete circle at final radius
-    position[0] -= path_radius * 2
+    position.x -= path_radius * 2
     commands.append(
-        G3(x=position[0], y=position[1], i=-path_radius, f=tool_options.feed_rate, comment='Complete circle at final radius'))
+        G3(x=position.x, y=position.y, i=-path_radius, f=tool_options.feed_rate, comment='Complete circle at final radius'))

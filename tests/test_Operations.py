@@ -1,8 +1,5 @@
 from unittest import TestCase
-
-from conversational_gcode.options.JobOptions import JobOptions
-from conversational_gcode.options.ToolOptions import ToolOptions
-from conversational_gcode.gcodes.GCodes import GCode, G0, G2, G3
+from typing import Tuple
 
 from conversational_gcode.operations.Operations import *
 
@@ -14,9 +11,9 @@ class TestOperationsRapidWithZHop(TestCase):
 
     def test_origin_to_xy(self):
         comment = "Weeeeee!"
-        position = [0, 0, 0]
-        start = [*position]
-        end = [1, 2, 0]
+        position = Position(0, 0, 0)
+        start = Position(position.x, position.y, position.z)
+        end = Position(1, 2, 0)
 
         commands, positions = rapid_with_z_hop(
             position,
@@ -28,25 +25,25 @@ class TestOperationsRapidWithZHop(TestCase):
         # Check commands
         self.assertEqual(3, len(commands))
         self.assertEqual(
-            G0(z=end[2] + self.job_options.lead_in, comment=comment),
+            G0(z=end.z + self.job_options.lead_in, comment=comment),
             commands[0]
         )
-        self.assertEqual(G0(x=end[0], y=end[1]), commands[1])
-        self.assertEqual(G0(z=end[2]), commands[2])
+        self.assertEqual(G0(x=end.x, y=end.y), commands[1])
+        self.assertEqual(G0(z=end.z), commands[2])
 
         # Check final position
         self.assertEqual(end, position)
 
         # Check intermediate positions
         self.assertEqual(3, len(commands))
-        self.assertEqual([start[0], start[1], end[2] + self.job_options.lead_in], positions[0])
-        self.assertEqual([end[0], end[1], end[2] + self.job_options.lead_in], positions[1])
+        self.assertEqual(Position(start.x, start.y, end.z + self.job_options.lead_in), positions[0])
+        self.assertEqual(Position(end.x, end.y, end.z + self.job_options.lead_in), positions[1])
         self.assertEqual(end, positions[2])
 
     def test_nowhere_to_xy(self):
         comment = "Weeeeee!"
-        position = [None, None, None]
-        end = [1, 2, 0]
+        position = Position()
+        end = Position(1, 2, 0)
 
         commands, positions = rapid_with_z_hop(
             position,
@@ -58,26 +55,26 @@ class TestOperationsRapidWithZHop(TestCase):
         # Check commands
         self.assertEqual(3, len(commands))
         self.assertEqual(
-            G0(z=end[2] + self.job_options.lead_in, comment=comment),
+            G0(z=end.z + self.job_options.lead_in, comment=comment),
             commands[0]
         )
-        self.assertEqual(G0(x=end[0], y=end[1]), commands[1])
-        self.assertEqual(G0(z=end[2]), commands[2])
+        self.assertEqual(G0(x=end.x, y=end.y), commands[1])
+        self.assertEqual(G0(z=end.z), commands[2])
 
         # Check final position
         self.assertEqual(end, position)
 
         # Check intermediate positions
         self.assertEqual(3, len(commands))
-        self.assertEqual([end[0], end[1], end[2] + self.job_options.lead_in], positions[0])
-        self.assertEqual([end[0], end[1], end[2] + self.job_options.lead_in], positions[1])
+        self.assertEqual(Position(end.x, end.y, end.z + self.job_options.lead_in), positions[0])
+        self.assertEqual(Position(end.x, end.y, end.z + self.job_options.lead_in), positions[1])
         self.assertEqual(end, positions[2])
 
     def test_somewhere_to_xy_z_raise(self):
         comment = "Weeeeee!"
-        position = [1, 2, 3]
-        start = [*position]
-        end = [11, 12, 13]
+        position = Position(1, 2, 3)
+        start = Position(position.x, position.y, position.z)
+        end = Position(11, 12, 13)
 
         commands, positions = rapid_with_z_hop(
             position,
@@ -89,26 +86,26 @@ class TestOperationsRapidWithZHop(TestCase):
         # Check commands
         self.assertEqual(3, len(commands))
         self.assertEqual(
-            G0(z=end[2] + self.job_options.lead_in, comment=comment),
+            G0(z=end.z + self.job_options.lead_in, comment=comment),
             commands[0]
         )
-        self.assertEqual(G0(x=end[0], y=end[1]), commands[1])
-        self.assertEqual(G0(z=end[2]), commands[2])
+        self.assertEqual(G0(x=end.x, y=end.y), commands[1])
+        self.assertEqual(G0(z=end.z), commands[2])
 
         # Check final position
         self.assertEqual(end, position)
 
         # Check intermediate positions
         self.assertEqual(3, len(commands))
-        self.assertEqual([start[0], start[1], end[2] + self.job_options.lead_in], positions[0])
-        self.assertEqual([end[0], end[1], end[2] + self.job_options.lead_in], positions[1])
+        self.assertEqual(Position(start.x, start.y, end.z + self.job_options.lead_in), positions[0])
+        self.assertEqual(Position(end.x, end.y, end.z + self.job_options.lead_in), positions[1])
         self.assertEqual(end, positions[2])
 
     def test_somewhere_to_xy_z_drop(self):
         comment = "Weeeeee!"
-        position = [11, 21, 13]
-        start = [*position]
-        end = [1, 2, 3]
+        position = Position(11, 21, 13)
+        start = Position(position.x, position.y, position.z)
+        end = Position(1, 2, 3)
 
         commands, positions = rapid_with_z_hop(
             position,
@@ -120,26 +117,26 @@ class TestOperationsRapidWithZHop(TestCase):
         # Check commands
         self.assertEqual(3, len(commands))
         self.assertEqual(
-            G0(z=start[2] + self.job_options.lead_in, comment=comment),
+            G0(z=start.z + self.job_options.lead_in, comment=comment),
             commands[0]
         )
-        self.assertEqual(G0(x=end[0], y=end[1]), commands[1])
-        self.assertEqual(G0(z=end[2]), commands[2])
+        self.assertEqual(G0(x=end.x, y=end.y), commands[1])
+        self.assertEqual(G0(z=end.z), commands[2])
 
         # Check final position
         self.assertEqual(end, position)
 
         # Check intermediate positions
         self.assertEqual(3, len(commands))
-        self.assertEqual([start[0], start[1], start[2] + self.job_options.lead_in], positions[0])
-        self.assertEqual([end[0], end[1], start[2] + self.job_options.lead_in], positions[1])
+        self.assertEqual(Position(start.x, start.y, start.z + self.job_options.lead_in), positions[0])
+        self.assertEqual(Position(end.x, end.y, start.z + self.job_options.lead_in), positions[1])
         self.assertEqual(end, positions[2])
 
     def test_somewhere_to_same_place(self):
         comment = "Weeeeee!"
-        position = [1, 2, 3]
-        start = [*position]
-        end = [*position]
+        position = Position(1, 2, 3)
+        start = Position(position.x, position.y, position.z)
+        end = Position(position.x, position.y, position.z)
 
         commands, positions = rapid_with_z_hop(
             position,
@@ -166,18 +163,19 @@ class TestOperationsHelicalPlunge(TestCase):
     def assertPlunge(
             self,
             arc_command: type,
-            centre: [float],
+            centre: Tuple[float, float],
             radius: float,
+            start_depth: float,
             plunge_depth: float,
-            position: [float],
-            commands: [GCode]
+            position: Position,
+            commands: list[GCode]
     ):
         self.assertEqual(6, len(commands))
         self.assertEqual(
             G0(
                 x=centre[0] + radius,
                 y=centre[1],
-                z=centre[2],
+                z=start_depth,
                 comment='Move to hole start position'
             ),
             commands[0]
@@ -191,7 +189,7 @@ class TestOperationsHelicalPlunge(TestCase):
                 arc_command(
                     x=centre[0] + radius,
                     y=centre[1],
-                    z=centre[2] - count * self.tool_options.max_stepdown,
+                    z=start_depth - count * self.tool_options.max_stepdown,
                     i=-radius,
                     f=self.tool_options.feed_rate
                 ),
@@ -202,7 +200,7 @@ class TestOperationsHelicalPlunge(TestCase):
             arc_command(
                 x=centre[0] + radius,
                 y=centre[1],
-                z=centre[2] - 3 * self.tool_options.max_stepdown,
+                z=start_depth - 3 * self.tool_options.max_stepdown,
                 i=-radius,
                 f=self.tool_options.feed_rate,
                 comment='Final full pass at depth'
@@ -211,14 +209,14 @@ class TestOperationsHelicalPlunge(TestCase):
         )
 
         self.assertEqual(
-            [centre[0] + radius, centre[1], centre[2] - plunge_depth],
+            Position(centre[0] + radius, centre[1], start_depth - plunge_depth),
             position
         )
 
     def test_internal_conventional_plunge_at_origin(self):
         commands = []
-        position = [0, 0, 0]
-        centre = [0, 0, 0]
+        position = Position(0, 0, 0)
+        centre = (0, 0)
         radius = 10
         plunge_depth = 3 * self.tool_options.max_stepdown
 
@@ -238,6 +236,7 @@ class TestOperationsHelicalPlunge(TestCase):
             arc_command=G2,
             centre=centre,
             radius=radius,
+            start_depth=0,
             plunge_depth=plunge_depth,
             position=position,
             commands=commands
@@ -245,8 +244,8 @@ class TestOperationsHelicalPlunge(TestCase):
 
     def test_internal_climb_plunge_at_origin(self):
         commands = []
-        position = [0, 0, 0]
-        centre = [0, 0, 0]
+        position = Position(0, 0, 0)
+        centre = (0, 0)
         radius = 10
         plunge_depth = 3 * self.tool_options.max_stepdown
 
@@ -266,6 +265,7 @@ class TestOperationsHelicalPlunge(TestCase):
             arc_command=G3,
             centre=centre,
             radius=radius,
+            start_depth=0,
             plunge_depth=plunge_depth,
             position=position,
             commands=commands
@@ -273,8 +273,8 @@ class TestOperationsHelicalPlunge(TestCase):
 
     def test_external_conventional_plunge_at_origin(self):
         commands = []
-        position = [0, 0, 0]
-        centre = [0, 0, 0]
+        position = Position(0, 0, 0)
+        centre = (0, 0)
         radius = 10
         plunge_depth = 3 * self.tool_options.max_stepdown
 
@@ -294,6 +294,7 @@ class TestOperationsHelicalPlunge(TestCase):
             arc_command=G3,
             centre=centre,
             radius=radius,
+            start_depth=0,
             plunge_depth=plunge_depth,
             position=position,
             commands=commands
@@ -301,8 +302,8 @@ class TestOperationsHelicalPlunge(TestCase):
 
     def test_external_climb_plunge_at_origin(self):
         commands = []
-        position = [0, 0, 0]
-        centre = [0, 0, 0]
+        position = Position(0, 0, 0)
+        centre = (0, 0)
         radius = 10
         plunge_depth = 3 * self.tool_options.max_stepdown
 
@@ -322,6 +323,7 @@ class TestOperationsHelicalPlunge(TestCase):
             arc_command=G2,
             centre=centre,
             radius=radius,
+            start_depth=0,
             plunge_depth=plunge_depth,
             position=position,
             commands=commands
@@ -329,8 +331,9 @@ class TestOperationsHelicalPlunge(TestCase):
 
     def test_internal_conventional_plunge_at_position(self):
         commands = []
-        position = [0, 0, 3]
-        centre = [1, 2, 3]
+        start_depth = 3
+        position = Position(0, 0, start_depth)
+        centre = (1, 2)
         radius = 10
         plunge_depth = 3 * self.tool_options.max_stepdown
 
@@ -350,6 +353,7 @@ class TestOperationsHelicalPlunge(TestCase):
             arc_command=G2,
             centre=centre,
             radius=radius,
+            start_depth=start_depth,
             plunge_depth=plunge_depth,
             position=position,
             commands=commands
@@ -357,8 +361,9 @@ class TestOperationsHelicalPlunge(TestCase):
 
     def test_internal_climb_plunge_at_position(self):
         commands = []
-        position = [0, 0, 3]
-        centre = [1, 2, 3]
+        start_depth = 3
+        position = Position(0, 0, start_depth)
+        centre = (1, 2)
         radius = 10
         plunge_depth = 3 * self.tool_options.max_stepdown
 
@@ -378,6 +383,7 @@ class TestOperationsHelicalPlunge(TestCase):
             arc_command=G3,
             centre=centre,
             radius=radius,
+            start_depth=start_depth,
             plunge_depth=plunge_depth,
             position=position,
             commands=commands
@@ -385,8 +391,9 @@ class TestOperationsHelicalPlunge(TestCase):
 
     def test_external_conventional_plunge_at_position(self):
         commands = []
-        position = [0, 0, 3]
-        centre = [1, 2, 3]
+        start_depth = 3
+        position = Position(0, 0, start_depth)
+        centre = (1, 2)
         radius = 10
         plunge_depth = 3 * self.tool_options.max_stepdown
 
@@ -406,6 +413,7 @@ class TestOperationsHelicalPlunge(TestCase):
             arc_command=G3,
             centre=centre,
             radius=radius,
+            start_depth=start_depth,
             plunge_depth=plunge_depth,
             position=position,
             commands=commands
@@ -413,8 +421,9 @@ class TestOperationsHelicalPlunge(TestCase):
 
     def test_external_climb_plunge_at_position(self):
         commands = []
-        position = [0, 0, 3]
-        centre = [1, 2, 3]
+        start_depth = 3
+        position = Position(0, 0, start_depth)
+        centre = (1, 2)
         radius = 10
         plunge_depth = 3 * self.tool_options.max_stepdown
 
@@ -434,6 +443,7 @@ class TestOperationsHelicalPlunge(TestCase):
             arc_command=G2,
             centre=centre,
             radius=radius,
+            start_depth=start_depth,
             plunge_depth=plunge_depth,
             position=position,
             commands=commands
@@ -493,7 +503,7 @@ class TestOperationsSpiralOut(TestCase):
         )
 
         self.assertEqual(
-            [centre[0] - final_radius, centre[1], centre[2]],
+            Position(centre[0] - final_radius, centre[1], position.z),
             position
         )
 
@@ -501,8 +511,8 @@ class TestOperationsSpiralOut(TestCase):
         commands = []
         current_radius = 10
         final_radius = current_radius + 2 * self.tool_options.max_stepover
-        centre = [0, 0, 0]
-        position = [centre[0] + current_radius, centre[1], centre[2]]
+        centre = (0, 0)
+        position = Position(centre[0] + current_radius, centre[1], 0)
 
         spiral_out(
             current_radius=current_radius,
@@ -528,8 +538,8 @@ class TestOperationsSpiralOut(TestCase):
         commands = []
         current_radius = 10
         final_radius = current_radius + 2 * self.tool_options.max_stepover
-        centre = [1, 2, 3]
-        position = [centre[0] + current_radius, centre[1], centre[2]]
+        centre = (1, 2)
+        position = Position(centre[0] + current_radius, centre[1], 3)
 
         spiral_out(
             current_radius=current_radius,
@@ -605,7 +615,7 @@ class TestOperationsSpiralIn(TestCase):
         )
 
         self.assertEqual(
-            [centre[0] - final_radius, centre[1], centre[2]],
+            Position(centre[0] - final_radius, centre[1], position.z),
             position
         )
 
@@ -613,8 +623,8 @@ class TestOperationsSpiralIn(TestCase):
         commands = []
         final_radius = 10
         current_radius = final_radius + 2 * self.tool_options.max_stepover
-        centre = [0, 0, 0]
-        position = [centre[0] + current_radius, centre[1], centre[2]]
+        centre = (0, 0)
+        position = Position(centre[0] + current_radius, centre[1], 0)
 
         spiral_in(
             current_radius=current_radius,
@@ -640,8 +650,8 @@ class TestOperationsSpiralIn(TestCase):
         commands = []
         final_radius = 10
         current_radius = final_radius + 2 * self.tool_options.max_stepover
-        centre = [1, 2, 3]
-        position = [centre[0] + current_radius, centre[1], centre[2]]
+        centre = (1, 2)
+        position = Position(centre[0] + current_radius, centre[1], 3)
 
         spiral_in(
             current_radius=current_radius,

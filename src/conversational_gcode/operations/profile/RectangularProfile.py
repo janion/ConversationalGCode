@@ -11,6 +11,7 @@ from typing import Tuple
 
 from conversational_gcode.operations.Operation import Operation
 from conversational_gcode.options.Options import Options
+from conversational_gcode.position.Position import Position
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.gcodes.GCodes import GCode, G0, G1
 
@@ -145,7 +146,7 @@ class RectangularProfile(Operation):
         fset=_set_is_climb
     )
 
-    def generate(self, position: list[float], commands: list[GCode], options: Options) -> None:
+    def generate(self, position: Position, commands: list[GCode], options: Options) -> None:
         # Setup
         precision = options.output.position_precision
         tool_options = options.tool
@@ -171,11 +172,11 @@ class RectangularProfile(Operation):
             centre = [self._corner[0] + self._width / 2, self._corner[1] + self._length / 2]
 
         # Position tool
-        position[0] = centre[0] + pocket_final_size[0] / 2
-        position[1] = centre[1] + pocket_final_size[1] / 2
-        commands.append(G0(x=position[0], y=position[1], comment='Move to starting position'))
-        position[2] = self._start_depth + job_options.lead_in
-        commands.append(G0(z=position[2], comment='Move to start depth'))
+        position.x = centre[0] + pocket_final_size[0] / 2
+        position.y = centre[1] + pocket_final_size[1] / 2
+        commands.append(G0(x=position.x, y=position.y, comment='Move to starting position'))
+        position.z = self._start_depth + job_options.lead_in
+        commands.append(G0(z=position.z, comment='Move to start depth'))
 
         x_travel_plunge = step_plunge * pocket_final_size[0] / total_xy_travel
         y_travel_plunge = step_plunge * pocket_final_size[1] / total_xy_travel
@@ -195,18 +196,18 @@ class RectangularProfile(Operation):
                 [0, pocket_final_size[1], -y_travel_plunge]
             ]
 
-        while not isclose(position[2], self._start_depth - self._depth, abs_tol=pow(10, -precision)):
+        while not isclose(position.z, self._start_depth - self._depth, abs_tol=pow(10, -precision)):
             for travel in travels:
-                position[0] += travel[0]
-                position[1] += travel[1]
-                position[2] += travel[2]
-                commands.append(G1(x=position[0], y=position[1], z=position[2], f=tool_options.feed_rate))
+                position.x += travel[0]
+                position.y += travel[1]
+                position.z += travel[2]
+                commands.append(G1(x=position.x, y=position.y, z=position.z, f=tool_options.feed_rate))
 
         commands.append(GCode('Final pass at full depth'))
         for travel in travels:
-            position[0] += travel[0]
-            position[1] += travel[1]
-            commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
+            position.x += travel[0]
+            position.y += travel[1]
+            commands.append(G1(x=position.x, y=position.y, f=tool_options.feed_rate))
 
     def to_json(self) -> str:
         return (

@@ -13,6 +13,7 @@ import json
 from conversational_gcode.operations.Operation import Operation
 from conversational_gcode.options.OutputOptions import OutputOptions
 from conversational_gcode.options.Options import Options
+from conversational_gcode.position.Position import Position
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.gcodes.GCodes import GCode, M2, M3, M5, G0
 
@@ -82,7 +83,7 @@ class GcodeGenerator:
 
         return results
 
-    def generate(self, position: list[float] = None) -> list[GCode]:
+    def generate(self, position: Position = None) -> list[GCode]:
         """
         Generate the GCode for all of the operations.
         :param position: Starting position of the job. Defaults to None to start at [0, 0, 0]
@@ -94,7 +95,7 @@ class GcodeGenerator:
             return [result.message for result in results]
 
         if position is None:
-            position = [0, 0, 0]
+            position = Position(0, 0, 0)
         # commands = _CommandPrinter(self._options.output)
         commands = []
 
@@ -103,8 +104,8 @@ class GcodeGenerator:
 
         commands.append(GCode())
 
-        position[2] = self._options.job.clearance_height
-        commands.append(G0(z=position[2], comment='Clear tool'))
+        position.z = self._options.job.clearance_height
+        commands.append(G0(z=position.z, comment='Clear tool'))
 
         commands.append(GCode())
         commands.append(M3(s=self._options.tool.spindle_speed, comment='Start spindle'))
@@ -113,8 +114,8 @@ class GcodeGenerator:
         for operation in self._operations:
             operation.generate(position, commands, self._options)
 
-            position[2] = self._options.job.clearance_height
-            commands.append(G0(z=position[2], comment='Clear tool'))
+            position.z = self._options.job.clearance_height
+            commands.append(G0(z=position.z, comment='Clear tool'))
             commands.append(GCode())
 
         commands.append(M5(comment='Stop spindle'))

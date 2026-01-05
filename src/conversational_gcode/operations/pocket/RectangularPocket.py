@@ -13,6 +13,7 @@ from typing import Tuple, Callable
 from conversational_gcode.operations.Operation import Operation
 from conversational_gcode.options.JobOptions import JobOptions
 from conversational_gcode.options.Options import Options
+from conversational_gcode.position.Position import Position
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import rapid_with_z_hop, helical_plunge, spiral_out
 from conversational_gcode.gcodes.GCodes import GCode, G0, G1, G2
@@ -141,7 +142,7 @@ class RectangularPocket(Operation):
         fset=_set_finishing_pass
     )
 
-    def generate(self, position: list[float], commands: list[GCode], options: Options) -> None:
+    def generate(self, position: Position, commands: list[GCode], options: Options) -> None:
         #########
         # Setup #
         #########
@@ -153,31 +154,33 @@ class RectangularPocket(Operation):
 
         has_finishing_pass = self._finishing_pass and tool_options.finishing_pass > 0
 
-        pocket_clearing_size = [self._width - tool_options.tool_diameter, self._length - tool_options.tool_diameter]
-        pocket_final_size = [self._width - tool_options.tool_diameter, self._length - tool_options.tool_diameter]
+        pocket_clearing_size = (self._width - tool_options.tool_diameter, self._length - tool_options.tool_diameter)
+        pocket_final_size = (self._width - tool_options.tool_diameter, self._length - tool_options.tool_diameter)
         if has_finishing_pass:
-            pocket_clearing_size[0] -= 2 * tool_options.finishing_pass
-            pocket_clearing_size[1] -= 2 * tool_options.finishing_pass
+            pocket_clearing_size = (
+                    pocket_clearing_size[0] - 2 * tool_options.finishing_pass,
+                    pocket_clearing_size[1] - 2 * tool_options.finishing_pass
+            )
 
         if self._centre is not None:
             centre = self._centre
         else:
-            centre = [self._corner[0] + self._width / 2, self._corner[1] + self._length / 2]
+            centre = (self._corner[0] + self._width / 2, self._corner[1] + self._length / 2)
 
         rotated = False
         if self._width > self._length:
-            pocket_clearing_size.reverse()
-            pocket_final_size.reverse()
-            position[0] = -position[1]
-            position[1] = position[0]
+            pocket_clearing_size = (pocket_clearing_size[1], pocket_clearing_size[0])
+            pocket_final_size = (pocket_final_size[1], pocket_final_size[0])
+            position.x = -position.y
+            position.y = position.x
             rotated = True
-        pocket_clearing_centre = [centre[0], centre[1] + (pocket_clearing_size[0] - pocket_clearing_size[1]) / 2]
+        pocket_clearing_centre = (centre[0], centre[1] + (pocket_clearing_size[0] - pocket_clearing_size[1]) / 2)
 
         final_clearing_radius = pocket_clearing_size[0] / 2
         initial_clearing_radius = min(final_clearing_radius, tool_options.max_helix_stepover)
 
         # Position tool ready to begin
-        self._move_to_start(pocket_clearing_centre + [self._start_depth], position, operation_commands, job_options)
+        self._move_to_start(Position(*pocket_clearing_centre, self._start_depth), position, operation_commands, job_options)
 
         total_plunge = job_options.lead_in + self._depth
         step_plunge = total_plunge / ceil(total_plunge / tool_options.max_stepdown)
@@ -186,10 +189,10 @@ class RectangularPocket(Operation):
         # Mill out material in depth steps #
         ####################################
         final_depth = self._start_depth - self._depth
-        deepest_cut_depth = position[2]
+        deepest_cut_depth = position.z
         while not isclose(deepest_cut_depth, final_depth, abs_tol=pow(10, -precision)):
             clearing_radius = initial_clearing_radius
-            position[2] = deepest_cut_depth
+            position.z = deepest_cut_depth
 
             operation_commands.append(GCode('Clear out circle at edge of pocket'))
             # Helical interpolate to depth
@@ -197,7 +200,7 @@ class RectangularPocket(Operation):
                            operation_commands, tool_options, precision)
 
             # Spiral out to final radius
-            deepest_cut_depth = position[2]
+            deepest_cut_depth = position.z
             if not isclose(clearing_radius, final_clearing_radius, abs_tol=pow(10, -precision)):
                 spiral_out(clearing_radius, final_clearing_radius, position, operation_commands, tool_options, precision)
 
@@ -222,36 +225,36 @@ class RectangularPocket(Operation):
         self._clear_wall(centre, position, operation_commands, job_options)
 
         if rotated:
-            position[0] = position[1]
-            position[1] = -position[0]
+            position.x = position.y
+            position.y = -position.x
             for command in operation_commands:
                 command.transform(
                     Transformation(
-                        [
-                            lambda x, y, z: (y + centre[0] - centre[1]) if y is not None else None,
-                            lambda x, y, z: (centre[0] + centre[1] - x) if x is not None else None,
-                            lambda x, y, z: z if z is not None else None
-                        ],
-                        [
-                            lambda x, y, z: y if y is not None else None,
-                            lambda x, y, z: -x if x is not None else None,
-                            lambda x, y, z: z if z is not None else None
-                        ]
+                        (
+                            lambda point: (point.y + centre[0] - centre[1]) if point.y is not None else None,
+                            lambda point: (centre[0] + centre[1] - point.x) if point.x is not None else None,
+                            lambda point: point.z if point.z is not None else None
+                        ),
+                        (
+                            lambda point: point.y if point.y is not None else None,
+                            lambda point: -point.x if point.x is not None else None,
+                            lambda point: point.z if point.z is not None else None
+                        )
                     )
                 )
 
         for operation_command in operation_commands:
             commands.append(operation_command)
 
-    def _move_to_start(self, start_position: list[float], position: list[float], commands: list[GCode], job_options: JobOptions) -> None:
+    def _move_to_start(self, start_position: Position, position: Position, commands: list[GCode], job_options: JobOptions) -> None:
         # Position tool at hole centre
-        position[0] = start_position[0]
-        position[1] = start_position[1]
-        commands.append(G0(x=position[0], y=position[1], comment='Move to starting position'))
-        position[2] = start_position[2] + job_options.lead_in
-        commands.append(G0(z=position[2], comment='Move to hole start depth'))
+        position.x = start_position.x
+        position.y = start_position.y
+        commands.append(G0(x=position.x, y=position.y, comment='Move to starting position'))
+        position.z = start_position.z + job_options.lead_in
+        commands.append(G0(z=position.z, comment='Move to hole start depth'))
 
-    def _clear_near_corners(self, pocket_clearing_centre: list[float], final_clearing_radius: float, position: list[float], operation_commands: list[GCode], options: Options) -> None:
+    def _clear_near_corners(self, pocket_clearing_centre: Tuple[float, float], final_clearing_radius: float, position: Position, operation_commands: list[GCode], options: Options) -> list[GCode]:
         precision = options.output.position_precision
         tool_options = options.tool
 
@@ -265,11 +268,11 @@ class RectangularPocket(Operation):
         br_corner_commands.extend(
             rapid_with_z_hop(
                 position=position,
-                new_position=[
+                new_position=Position(
                     pocket_clearing_centre[0] + final_clearing_radius,
-                    position[1],
-                    position[2]
-                ],
+                    position.y,
+                    position.z
+                ),
                 job_options=options.job
             )[0]
         )
@@ -283,30 +286,30 @@ class RectangularPocket(Operation):
                             final_clearing_radius + total_radial_cut_engagement) - final_clearing_radius * final_clearing_radius),
                 final_clearing_radius)
             # Engage cut
-            position[1] = pocket_clearing_centre[1] - total_cartesian_cut_engagement
-            br_corner_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
+            position.y = pocket_clearing_centre[1] - total_cartesian_cut_engagement
+            br_corner_commands.append(G1(x=position.x, y=position.y, f=tool_options.feed_rate))
 
             final_pass = isclose(total_cartesian_cut_engagement, final_clearing_radius, abs_tol=pow(10, -precision))
             if not final_pass:
                 # Arc around original clearing centre
-                position[0] = pocket_clearing_centre[0] + total_cartesian_cut_engagement
-                position[1] = pocket_clearing_centre[1] - final_clearing_radius
+                position.x = pocket_clearing_centre[0] + total_cartesian_cut_engagement
+                position.y = pocket_clearing_centre[1] - final_clearing_radius
                 br_corner_commands.append(
-                    G2(x=position[0], y=position[1], i=-final_clearing_radius, j=total_cartesian_cut_engagement,
+                    G2(x=position.x, y=position.y, i=-final_clearing_radius, j=total_cartesian_cut_engagement,
                        f=tool_options.feed_rate))
             # Disengage cut
-            position[0] = pocket_clearing_centre[0] + last_cartesian_cut_engagement
-            br_corner_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
+            position.x = pocket_clearing_centre[0] + last_cartesian_cut_engagement
+            br_corner_commands.append(G1(x=position.x, y=position.y, f=tool_options.feed_rate))
             # Move to original cut start
             if not final_pass:
                 br_corner_commands.extend(
                     rapid_with_z_hop(
                         position=position,
-                        new_position=[
+                        new_position=Position(
                             pocket_clearing_centre[0] + final_clearing_radius,
                             pocket_clearing_centre[1] - total_cartesian_cut_engagement,
-                            position[2]
-                        ],
+                            position.z
+                        ),
                         job_options=options.job
                     )[0]
                 )
@@ -321,16 +324,16 @@ class RectangularPocket(Operation):
         corner_commands.extend(br_corner_commands)
         corner_commands.append(GCode('Clear second corner'))
         rotation = Transformation(
-            [
-                lambda x, y, z: (y + pocket_clearing_centre[0] - pocket_clearing_centre[1]) if y is not None else None,
-                lambda x, y, z: (pocket_clearing_centre[0] + pocket_clearing_centre[1] - x) if x is not None else None,
-                lambda x, y, z: z if z is not None else None
-            ],
-            [
-                lambda x, y, z: y if y is not None else None,
-                lambda x, y, z: -x if x is not None else None,
-                lambda x, y, z: z if z is not None else None
-            ]
+            (
+                lambda point: (point.y + pocket_clearing_centre[0] - pocket_clearing_centre[1]) if point.y is not None else None,
+                lambda point: (pocket_clearing_centre[0] + pocket_clearing_centre[1] - point.x) if point.x is not None else None,
+                lambda point: point.z if point.z is not None else None
+            ),
+            (
+                lambda point: point.y if point.y is not None else None,
+                lambda point: -point.x if point.x is not None else None,
+                lambda point: point.z if point.z is not None else None
+            )
         )
         for br_corner_command in br_corner_commands:
             bl_corner_command = deepcopy(br_corner_command)
@@ -340,12 +343,12 @@ class RectangularPocket(Operation):
             corner_commands.append(bl_corner_command)
 
         new_position = rotation.transform_absolute(position)
-        position[0] = new_position[0]
-        position[1] = new_position[1]
+        position.x = new_position.x
+        position.y = new_position.y
 
         return corner_commands
 
-    def _clear_centre(self, pocket_clearing_centre: list[float], final_clearing_radius: float, pocket_clearing_size: list[float], position: list[float], operation_commands: list[GCode], options: Options) -> None:
+    def _clear_centre(self, pocket_clearing_centre: Tuple[float, float], final_clearing_radius: float, pocket_clearing_size: Tuple[float, float], position: Position, operation_commands: list[GCode], options: Options) -> None:
         precision = options.output.position_precision
         tool_options = options.tool
 
@@ -360,11 +363,11 @@ class RectangularPocket(Operation):
         operation_commands.extend(
             rapid_with_z_hop(
                 position=position,
-                new_position=[
+                new_position=Position(
                     pocket_clearing_centre[0] - final_clearing_radius,
                     pocket_clearing_centre[1],
-                    position[2]
-                ],
+                    position.z
+                ),
                 job_options=options.job,
                 comment='Move to arc start'
             )[0]
@@ -378,31 +381,31 @@ class RectangularPocket(Operation):
                             final_clearing_radius + total_radial_cut_engagement) - final_clearing_radius * final_clearing_radius)
 
             # Engage cut
-            position[1] = pocket_clearing_centre[1] + total_cartesian_stepover
-            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
+            position.y = pocket_clearing_centre[1] + total_cartesian_stepover
+            operation_commands.append(G1(x=position.x, y=position.y, f=tool_options.feed_rate))
             # Traverse arc
-            position[0] = pocket_clearing_centre[0] + final_clearing_radius
-            operation_commands.append(G2(x=position[0], y=position[1], i=final_clearing_radius, j=pocket_clearing_centre[1] - position[1], f=tool_options.feed_rate))
+            position.x = pocket_clearing_centre[0] + final_clearing_radius
+            operation_commands.append(G2(x=position.x, y=position.y, i=final_clearing_radius, j=pocket_clearing_centre[1] - position.y, f=tool_options.feed_rate))
             # Disengage cut
-            position[1] = pocket_clearing_centre[1] + last_cartesian_stepover
-            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
+            position.y = pocket_clearing_centre[1] + last_cartesian_stepover
+            operation_commands.append(G1(x=position.x, y=position.y, f=tool_options.feed_rate))
 
             # Move to previous start position
             operation_commands.extend(
                 rapid_with_z_hop(
                     position=position,
-                    new_position=[
+                    new_position=Position(
                         pocket_clearing_centre[0] - final_clearing_radius,
                         pocket_clearing_centre[1] + total_cartesian_stepover,
-                        position[2]
-                    ],
+                        position.z
+                    ),
                     job_options=options.job
                 )[0]
             )
 
             last_cartesian_stepover = total_cartesian_stepover
 
-    def _clear_far_corners(self, pocket_clearing_centre: list[float], final_clearing_radius: float, pocket_clearing_size: list[float], corner_commands: list[GCode], position: list[float], operation_commands: list[GCode], options: Options) -> None:
+    def _clear_far_corners(self, pocket_clearing_centre: Tuple[float, float], final_clearing_radius: float, pocket_clearing_size: Tuple[float, float], corner_commands: list[GCode], position: Position, operation_commands: list[GCode], options: Options) -> None:
         tool_options = options.tool
         precision = options.output.position_precision
 
@@ -412,23 +415,23 @@ class RectangularPocket(Operation):
             operation_commands.append(GCode('Clear furthest corners'))
             # Repeat existing corner commands
             rotation = Transformation(
-                [
-                    lambda x, y, z: (y + pocket_clearing_centre[0] - pocket_clearing_centre[1]) if y is not None else None,
-                    lambda x, y, z: (pocket_clearing_centre[0] + pocket_clearing_centre[1] - x) if x is not None else None,
-                    lambda x, y, z: z if z is not None else None
-                ],
-                [
-                    lambda x, y, z: y if y is not None else None,
-                    lambda x, y, z: -x if x is not None else None,
-                    lambda x, y, z: z if z is not None else None
-                ]
+                (
+                    lambda point: (point.y + pocket_clearing_centre[0] - pocket_clearing_centre[1]) if point.y is not None else None,
+                    lambda point: (pocket_clearing_centre[0] + pocket_clearing_centre[1] - point.x) if point.x is not None else None,
+                    lambda point: point.z if point.z is not None else None
+                ),
+                (
+                    lambda point: point.y if point.y is not None else None,
+                    lambda point: -point.x if point.x is not None else None,
+                    lambda point: point.z if point.z is not None else None
+                )
             )
             for corner_command in corner_commands:
                 operation_commands.append(deepcopy(corner_command).transform(rotation).transform(rotation))
 
             new_position = rotation.transform_absolute(rotation.transform_absolute(position))
-            position[0] = new_position[0]
-            position[1] = new_position[1]
+            position.x = new_position.x
+            position.y = new_position.y
             return
 
         radial_distance_to_corner = sqrt(final_arcing_radius * final_arcing_radius + final_clearing_radius * final_clearing_radius) - final_arcing_radius
@@ -441,15 +444,15 @@ class RectangularPocket(Operation):
 
         tl_corner_commands.append(GCode('First far corner'))
         tr_corner_commands_and_positions.append([
-            [None, None, None],
-            lambda x, y, z: GCode('Second far corner')
+            Position(),
+            lambda point: GCode('Second far corner')
         ])
 
         # Move to start position
         self._record_future_rapid(
             tr_corner_commands_and_positions,
-            [*tr_corner_commands_and_positions[-1][0]],
-            [pocket_clearing_centre[0], pocket_clearing_centre[1] + final_arcing_radius, position[2]],
+            tr_corner_commands_and_positions[-1][0],
+            Position(pocket_clearing_centre[0], pocket_clearing_centre[1] + final_arcing_radius, position.z),
             options.job,
             comment='Move to arc start'
         )
@@ -464,32 +467,32 @@ class RectangularPocket(Operation):
             total_cartesian_stepout = sqrt(total_radius * total_radius - final_arcing_radius * final_arcing_radius)
 
             # Engage cut
-            position[1] = pocket_clearing_centre[1] + total_cartesian_stepin
-            tl_corner_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
+            position.y = pocket_clearing_centre[1] + total_cartesian_stepin
+            tl_corner_commands.append(G1(x=position.x, y=position.y, f=tool_options.feed_rate))
             tr_corner_commands_and_positions.append([
-                [pocket_clearing_centre[0] + total_cartesian_stepout, tr_corner_commands_and_positions[-1][0][1], position[2]],
-                lambda x, y, z: G1(x=x, y=y, f=tool_options.feed_rate)
+                Position(pocket_clearing_centre[0] + total_cartesian_stepout, tr_corner_commands_and_positions[-1][0].y, position.z),
+                lambda point: G1(x=point.x, y=point.y, f=tool_options.feed_rate)
             ])
 
             if not isclose(total_radial_cut_engagement, radial_distance_to_corner, abs_tol=pow(10, -precision)):
                 # Traverse arc
-                position[0] = pocket_clearing_centre[0] - total_cartesian_stepout
-                j = pocket_clearing_centre[1] - position[1]
-                position[1] = pocket_clearing_centre[1] + pocket_clearing_size[1] - final_clearing_radius
-                tl_corner_commands.append(G2(x=position[0], y=position[1], i=final_clearing_radius, j=j, f=tool_options.feed_rate))
+                position.x = pocket_clearing_centre[0] - total_cartesian_stepout
+                j = pocket_clearing_centre[1] - position.y
+                position.y = pocket_clearing_centre[1] + pocket_clearing_size[1] - final_clearing_radius
+                tl_corner_commands.append(G2(x=position.x, y=position.y, i=final_clearing_radius, j=j, f=tool_options.feed_rate))
 
                 tr_corner_commands_and_positions.append([
-                    [pocket_clearing_centre[0] + final_clearing_radius, pocket_clearing_centre[1] + total_cartesian_stepin, position[2]],
-                    (lambda tmp_step: lambda x, y, z: G2(x=x, y=y, i=-tmp_step, j=-final_arcing_radius, f=tool_options.feed_rate))(total_cartesian_stepout)
+                    Position(pocket_clearing_centre[0] + final_clearing_radius, pocket_clearing_centre[1] + total_cartesian_stepin, position.z),
+                    (lambda tmp_step: lambda point: G2(x=point.x, y=point.y, i=-tmp_step, j=-final_arcing_radius, f=tool_options.feed_rate))(total_cartesian_stepout)
                 ])
 
             # Disengage cut
-            position[0] = pocket_clearing_centre[0] - last_cartesian_stepout
-            tl_corner_commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
+            position.x = pocket_clearing_centre[0] - last_cartesian_stepout
+            tl_corner_commands.append(G1(x=position.x, y=position.y, f=tool_options.feed_rate))
 
             tr_corner_commands_and_positions.append([
-                [pocket_clearing_centre[0] + final_clearing_radius, pocket_clearing_centre[1] + last_cartesian_stepin, position[2]],
-                lambda x, y, z: G1(x=x, y=y, f=tool_options.feed_rate)
+                Position(pocket_clearing_centre[0] + final_clearing_radius, pocket_clearing_centre[1] + last_cartesian_stepin, position.z),
+                lambda point: G1(x=point.x, y=point.y, f=tool_options.feed_rate)
             ])
 
             if not isclose(total_radial_cut_engagement, radial_distance_to_corner, abs_tol=pow(10, -precision)):
@@ -497,19 +500,19 @@ class RectangularPocket(Operation):
                 tl_corner_commands.extend(
                     rapid_with_z_hop(
                         position=position,
-                        new_position=[
+                        new_position=Position(
                             pocket_clearing_centre[0] - final_clearing_radius,
                             pocket_clearing_centre[1] + total_cartesian_stepin,
-                            position[2]
-                        ],
+                            position.z
+                        ),
                         job_options=options.job
                     )[0]
                 )
 
                 self._record_future_rapid(
                     tr_corner_commands_and_positions,
-                    [*tr_corner_commands_and_positions[-1][0]],
-                    [pocket_clearing_centre[0] + total_cartesian_stepout, pocket_clearing_centre[1] + final_arcing_radius, position[2]],
+                    tr_corner_commands_and_positions[-1][0],
+                    Position(pocket_clearing_centre[0] + total_cartesian_stepout, pocket_clearing_centre[1] + final_arcing_radius, position.z),
                     options.job,
                 )
 
@@ -518,58 +521,60 @@ class RectangularPocket(Operation):
 
         operation_commands.extend(tl_corner_commands)
         for point, command in tr_corner_commands_and_positions:
-            position[0:3] = point
-            operation_commands.append(command(*point))
+            position.x = point.x
+            position.y = point.y
+            position.z = point.z
+            operation_commands.append(command(point))
 
-    def _record_future_rapid(self, commands_and_positions: list[Tuple[list[float], Callable[[float, float, float], GCode]]], start_position: list[float], new_position: list[float], job_options: JobOptions, comment: str = None) -> None:
+    def _record_future_rapid(self, commands_and_positions: list[Tuple[Position, Callable[[Position], GCode]]], start_position: Position, new_position: Position, job_options: JobOptions, comment: str = None) -> None:
         rapid_commands, rapid_positions = rapid_with_z_hop(
             position=start_position,
-            new_position=[*new_position],
+            new_position=new_position,
             job_options=job_options,
             comment=comment
         )
         for command, position in zip(rapid_commands, rapid_positions):
-            commands_and_positions.append((position, (lambda tmp_command: lambda x, y, z: tmp_command)(command)))
+            commands_and_positions.append((position, (lambda tmp_command: lambda point: tmp_command)(command)))
 
-    def _create_finishing_pass(self, centre: list[float], pocket_final_size: list[float], position: list[float], operation_commands: list[GCode], options: Options) -> None:
+    def _create_finishing_pass(self, centre: Tuple[float, float], pocket_final_size: Tuple[float, float], position: Position, operation_commands: list[GCode], options: Options) -> None:
         tool_options = options.tool
         precision = options.output.position_precision
 
         operation_commands.append(GCode(f'{tool_options.finishing_pass:.{precision}f}mm finishing pass'))
 
         # Feed into cut
-        position[0] = centre[0] + pocket_final_size[0] / 2
-        operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
+        position.x = centre[0] + pocket_final_size[0] / 2
+        operation_commands.append(G1(x=position.x, y=position.y, f=tool_options.finishing_feed_rate))
 
-        initial_y_position = position[1]
+        initial_y_position = position.y
         if tool_options.finishing_climb:
-            position[1] = centre[1] + pocket_final_size[1] / 2
-            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[0] = centre[0] - pocket_final_size[0] / 2
-            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[1] = centre[1] - pocket_final_size[1] / 2
-            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[0] = centre[0] + pocket_final_size[0] / 2
-            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[1] = initial_y_position
-            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
+            position.y = centre[1] + pocket_final_size[1] / 2
+            operation_commands.append(G1(x=position.x, y=position.y, f=tool_options.finishing_feed_rate))
+            position.x = centre[0] - pocket_final_size[0] / 2
+            operation_commands.append(G1(x=position.x, y=position.y, f=tool_options.finishing_feed_rate))
+            position.y = centre[1] - pocket_final_size[1] / 2
+            operation_commands.append(G1(x=position.x, y=position.y, f=tool_options.finishing_feed_rate))
+            position.x = centre[0] + pocket_final_size[0] / 2
+            operation_commands.append(G1(x=position.x, y=position.y, f=tool_options.finishing_feed_rate))
+            position.y = initial_y_position
+            operation_commands.append(G1(x=position.x, y=position.y, f=tool_options.finishing_feed_rate))
         else:
-            position[1] = centre[1] - pocket_final_size[1] / 2
-            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[0] = centre[0] - pocket_final_size[0] / 2
-            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[1] = centre[1] + pocket_final_size[1] / 2
-            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[0] = centre[0] + pocket_final_size[0] / 2
-            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
-            position[1] = initial_y_position
-            operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
+            position.y = centre[1] - pocket_final_size[1] / 2
+            operation_commands.append(G1(x=position.x, y=position.y, f=tool_options.finishing_feed_rate))
+            position.x = centre[0] - pocket_final_size[0] / 2
+            operation_commands.append(G1(x=position.x, y=position.y, f=tool_options.finishing_feed_rate))
+            position.y = centre[1] + pocket_final_size[1] / 2
+            operation_commands.append(G1(x=position.x, y=position.y, f=tool_options.finishing_feed_rate))
+            position.x = centre[0] + pocket_final_size[0] / 2
+            operation_commands.append(G1(x=position.x, y=position.y, f=tool_options.finishing_feed_rate))
+            position.y = initial_y_position
+            operation_commands.append(G1(x=position.x, y=position.y, f=tool_options.finishing_feed_rate))
 
-    def _clear_wall(self, centre: list[float], position: list[float], operation_commands: list[GCode], job_options: JobOptions) -> None:
-        position[0] = max(centre[0], position[0] - 1)
-        position[1] = max(centre[1], position[1] - 1)
-        position[2] += job_options.lead_in
-        operation_commands.append(G0(x=position[0], y=position[1], z=position[2], comment='Clear wall'))
+    def _clear_wall(self, centre: Tuple[float, float], position: Position, operation_commands: list[GCode], job_options: JobOptions) -> None:
+        position.x = max(centre[0], position.x - 1)
+        position.y = max(centre[1], position.y - 1)
+        position.z += job_options.lead_in
+        operation_commands.append(G0(x=position.x, y=position.y, z=position.z, comment='Clear wall'))
 
     def to_json(self) -> str:
         return (

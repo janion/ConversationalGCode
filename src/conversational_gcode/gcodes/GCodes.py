@@ -31,6 +31,7 @@ Classes:
 """
 
 from conversational_gcode.options.OutputOptions import OutputOptions
+from conversational_gcode.position.Position import Position
 from conversational_gcode.transform.Transformation import Transformation
 
 from dataclasses import dataclass
@@ -163,11 +164,11 @@ class G0(GCode):
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'G0{x_pos}{y_pos}{z_pos}{end}'
 
-    def transform(self, transformation: Transformation) -> GCode:
-        new_point = transformation.transform_absolute([self.x, self.y, self.z])
-        self.x = new_point[0]
-        self.y = new_point[1]
-        self.z = new_point[2]
+    def transform(self, transformation: Transformation) -> Self:
+        new_point = transformation.transform_absolute(Position(self.x, self.y, self.z))
+        self.x = new_point.x
+        self.y = new_point.y
+        self.z = new_point.z
 
         return self
 
@@ -261,14 +262,14 @@ class G2(G1):
     def format(self, output_options: OutputOptions) -> str:
         return self._format_arc('G2', output_options)
 
-    def transform(self, transformation: Transformation) -> GCode:
+    def transform(self, transformation: Transformation) -> Self:
         super().transform(transformation)
 
-        new_point = transformation.transform_relative([self.i, self.j, self.k])
+        new_point = transformation.transform_relative(Position(self.i, self.j, self.k))
 
-        self.i = new_point[0]
-        self.j = new_point[1]
-        self.k = new_point[2]
+        self.i = new_point.x
+        self.j = new_point.y
+        self.k = new_point.z
 
         return self
 

@@ -10,6 +10,7 @@ from typing import Tuple
 from conversational_gcode.operations.Operation import Operation
 from conversational_gcode.options.JobOptions import JobOptions
 from conversational_gcode.options.Options import Options
+from conversational_gcode.position.Position import Position
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import helical_plunge
 from conversational_gcode.gcodes.GCodes import GCode, G0
@@ -113,7 +114,7 @@ class CircularProfile(Operation):
         fset=_set_is_climb
     )
 
-    def generate(self, position: list[float], commands: list[GCode], options: Options) -> None:
+    def generate(self, position: Position, commands: list[GCode], options: Options) -> None:
         # Setup
         tool_options = options.tool
         job_options = options.job
@@ -138,13 +139,13 @@ class CircularProfile(Operation):
                        is_inner=self._is_inner,
                        is_climb=self._is_climb)
 
-    def _move_to_centre(self, position: list[float], commands: list[GCode], job_options: JobOptions) -> None:
+    def _move_to_centre(self, position: Position, commands: list[GCode], job_options: JobOptions) -> None:
         # Position tool at hole centre
-        position[0] = self._centre[0]
-        position[1] = self._centre[1]
-        commands.append(G0(x=position[0], y=position[1], comment='Move to hole position'))
-        position[2] = self._start_depth + job_options.lead_in
-        commands.append(G0(z=position[2], comment='Move to hole start depth'))
+        position.x = self._centre[0]
+        position.y = self._centre[1]
+        commands.append(G0(x=position.x, y=position.y, comment='Move to hole position'))
+        position.z = self._start_depth + job_options.lead_in
+        commands.append(G0(z=position.z, comment='Move to hole start depth'))
 
     def to_json(self) -> str:
         return (
