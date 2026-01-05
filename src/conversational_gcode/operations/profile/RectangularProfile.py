@@ -7,6 +7,7 @@ Classes:
 """
 
 from math import ceil, tan, pi, isclose
+from typing import Tuple
 
 from conversational_gcode.operations.Operation import Operation
 from conversational_gcode.options.Options import Options
@@ -27,8 +28,8 @@ class RectangularProfile(Operation):
                  width: float = 10,
                  length: float = 10,
                  depth: float = 3,
-                 centre: list = None,
-                 corner: list = None,
+                 centre: Tuple[float, float] = None,
+                 corner: Tuple[float, float] = None,
                  start_depth: float = 0,
                  is_inner: bool = True,
                  is_climb: bool = False):
@@ -37,8 +38,8 @@ class RectangularProfile(Operation):
         :param width: X-axis size of the profile centre. Defaults to 10mm.
         :param length: Y-axis of the profile centre. Defaults to 10mm.
         :param depth: The depth of the profile below the start depth. Defaults to 3mm.
-        :param centre: [X, Y] location of the profile centre. Defaults to [0, 0] if centre and corner not set.
-        :param corner: [X, Y] location of the minimum X and Y corner of the profile,
+        :param centre: (X, Y) location of the profile centre. Defaults to (0, 0) if centre and corner not set.
+        :param corner: (X, Y) location of the minimum X and Y corner of the profile,
             bottom left if X axis is left to right, and Y axis is near to far. Defaults to None.
         :param start_depth: The Z axis depth at which the profile starts. Defaults to 0mm.
         :param is_inner: True if this operation is to cut an inside profile, False if to cut an outside profile.
@@ -53,7 +54,7 @@ class RectangularProfile(Operation):
         self._centre = centre
         self._corner = corner
         if centre is None and corner is None:
-            self._centre = [0, 0]
+            self._centre = (0, 0)
 
         self._start_depth = start_depth
         self._is_inner = is_inner
@@ -96,10 +97,10 @@ class RectangularProfile(Operation):
     def _set_depth(self, value: float) -> None:
         self._depth = value
 
-    def _set_centre(self, value: list[float]) -> None:
+    def _set_centre(self, value: Tuple[float, float]) -> None:
         self._centre = value
 
-    def _set_corner(self, value: list[float]) -> None:
+    def _set_corner(self, value: Tuple[float, float]) -> None:
         self._corner = value
 
     def _set_start_depth(self, value: float) -> None:

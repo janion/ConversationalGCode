@@ -14,7 +14,7 @@ class TestCircularPocket(EndToEndTester):
     def test_deep_narrow_position(self):
         self.gcode_generator.add_operation(
             CircularPocket(
-                centre=[12, 13],
+                centre=(12, 13),
                 start_depth=-10,
                 diameter=self.options.tool.tool_diameter + self.options.tool.max_helix_stepover * 2,
                 depth=20
@@ -28,7 +28,7 @@ class TestCircularPocket(EndToEndTester):
 
         self.gcode_generator.add_operation(
             CircularPocket(
-                centre=[12, 13],
+                centre=(12, 13),
                 start_depth=-10,
                 diameter=26,
                 depth=20,
@@ -44,7 +44,7 @@ class TestCircularPocket(EndToEndTester):
 
         self.gcode_generator.add_operation(
             CircularPocket(
-                centre=[12, 13],
+                centre=(12, 13),
                 start_depth=-10,
                 diameter=26,
                 depth=20,

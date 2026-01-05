@@ -28,7 +28,7 @@ class TestRectangularProfile(EndToEndTester):
 
     def test_deep_long_position_centre(self):
         self.gcode_generator.add_operation(
-            RectangularProfile(width=20, length=30, depth=5, start_depth=-3, centre=[10, 20])
+            RectangularProfile(width=20, length=30, depth=5, start_depth=-3, centre=(10, 20))
         )
 
         self.assertFileMatches('resources/e2e/rectangular_profile/deep_long_position.nc')
@@ -43,7 +43,7 @@ class TestRectangularProfile(EndToEndTester):
     #             length=30,
     #             depth=5,
     #             start_depth=-3,
-    #             centre=[10, 20],
+    #             centre=(10, 20),
     #             finishing_pass=True
     #         )
     #     )
@@ -61,7 +61,7 @@ class TestRectangularProfile(EndToEndTester):
     #             length=30,
     #             depth=5,
     #             start_depth=-3,
-    #             centre=[10, 20],
+    #             centre=(10, 20),
     #             finishing_pass=True
     #         )
     #     )
@@ -91,7 +91,7 @@ class TestRectangularProfile(EndToEndTester):
 
     def test_deep_long_position_corner(self):
         self.gcode_generator.add_operation(
-            RectangularProfile(width=20, length=30, depth=5, start_depth=-3, corner=[0, 5])
+            RectangularProfile(width=20, length=30, depth=5, start_depth=-3, corner=(0, 5))
         )
 
         self.assertFileMatches('resources/e2e/rectangular_profile/deep_long_position.nc')
@@ -106,7 +106,7 @@ class TestRectangularProfile(EndToEndTester):
         #         length=30,
         #         depth=5,
         #         start_depth=-3,
-        #         corner=[0, 5],
+        #         corner=(0, 5),
         #         finishing_pass=True
         #     )
         # )
@@ -124,7 +124,7 @@ class TestRectangularProfile(EndToEndTester):
         #         length=30,
         #         depth=5,
         #         start_depth=-3,
-        #         corner=[0, 5],
+        #         corner=(0, 5),
         #         finishing_pass=True
         #     )
         # )

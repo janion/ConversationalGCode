@@ -5,6 +5,8 @@ Classes:
 - CircularProfile
   - Operation to create a circular profile.
 """
+from typing import Tuple
+
 from conversational_gcode.operations.Operation import Operation
 from conversational_gcode.options.JobOptions import JobOptions
 from conversational_gcode.options.Options import Options
@@ -22,7 +24,7 @@ class CircularProfile(Operation):
     """
 
     def __init__(self,
-                 centre: list = None,
+                 centre: Tuple[float, float] = None,
                  start_depth: float = 0,
                  diameter: float = 10,
                  depth: float = 3,
@@ -30,7 +32,7 @@ class CircularProfile(Operation):
                  is_climb: bool = False):
         """
         Initialise the pocket operation.
-        :param centre: [X, Y] location of the profile centre. Defaults to [0, 0].
+        :param centre: (X, Y) location of the profile centre. Defaults to (0, 0).
         :param start_depth: The Z-axis depth at which the profile starts. Defaults to 0mm.
         :param diameter: The diameter of the profile. Defaults to 10mm.
         :param depth: The depth of the profile below the start depth. Defaults to 10mm.
@@ -39,7 +41,7 @@ class CircularProfile(Operation):
         :param is_climb: True if this operation is to climb vut the profile, False if to cut conventionally. Defaults
             to False.
         """
-        self._centre = [0, 0] if centre is None else centre
+        self._centre = (0, 0) if centre is None else centre
         self._start_depth = start_depth
         self._diameter = diameter
         self._depth = depth
@@ -68,8 +70,8 @@ class CircularProfile(Operation):
 
         return results
 
-    def _set_centre(self, value: list[float]) -> None:
-        self._centre = [0, 0] if value is None else value
+    def _set_centre(self, value: Tuple[float, float]) -> None:
+        self._centre = (0, 0) if value is None else value
 
     def _set_start_depth(self, value: float) -> None:
         self._start_depth = value

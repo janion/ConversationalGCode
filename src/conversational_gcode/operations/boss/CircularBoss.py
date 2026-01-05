@@ -7,6 +7,7 @@ Classes:
 """
 
 from math import ceil, isclose
+from typing import Tuple
 
 from conversational_gcode.operations.Operation import Operation
 from conversational_gcode.options.JobOptions import JobOptions
@@ -26,7 +27,7 @@ class CircularBoss(Operation):
     """
 
     def __init__(self,
-                 centre: list[float] = None,
+                 centre: Tuple[float, float] = None,
                  top_height: float = 0,
                  initial_diameter: float = 20,
                  final_diameter: float = 10,
@@ -34,7 +35,7 @@ class CircularBoss(Operation):
                  finishing_pass: bool = False):
         """
         Initialise the boss operation.
-        :param centre: [X, Y] location of the boss centre. Defaults to [0, 0].
+        :param centre: (X, Y) location of the boss centre. Defaults to (0, 0).
         :param top_height: The Z-axis height at which the boss starts. Defaults to 0mm.
         :param initial_diameter: The diameter at which to start  cutting the boss. Defaults to 20mm.
         :param final_diameter: The diameter of the boss. Defaults to 10mm.
@@ -42,7 +43,7 @@ class CircularBoss(Operation):
         :param finishing_pass: True if this operation includes a finishing pass. Defaults to False to indicate no
             finishing pass.
         """
-        self._centre = [0, 0] if centre is None else centre
+        self._centre = (0, 0) if centre is None else centre
         self._top_height = top_height
         self._initial_diameter = initial_diameter
         self._final_diameter = final_diameter
@@ -67,8 +68,8 @@ class CircularBoss(Operation):
 
         return results
 
-    def _set_centre(self, value: list[float]) -> None:
-        self._centre = value
+    def _set_centre(self, value: Tuple[float, float]) -> None:
+        self._centre = (0, 0) if value is None else value
 
     def _set_top_height(self, value: float) -> None:
         self._top_height = value

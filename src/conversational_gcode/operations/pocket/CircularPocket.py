@@ -7,6 +7,7 @@ Classes:
 """
 
 from math import ceil, isclose
+from typing import Tuple
 
 from conversational_gcode.operations.Operation import Operation
 from conversational_gcode.options.JobOptions import JobOptions
@@ -26,21 +27,21 @@ class CircularPocket(Operation):
     """
 
     def __init__(self,
-                 centre: list[float] = None,
+                 centre: Tuple[float, float] = None,
                  start_depth: float = 0,
                  diameter: float = 10,
                  depth: float = 10,
                  finishing_pass: bool = False):
         """
         Initialise the pocket operation.
-        :param centre: [X, Y] location of the pocket centre. Defaults to [0, 0].
+        :param centre: (X, Y) location of the pocket centre. Defaults to (0, 0).
         :param start_depth: The Z-axis depth at which the pocket starts. Defaults to 0mm.
         :param diameter: The diameter of the pocket. Defaults to 10mm.
         :param depth: The depth of the pocket below the start depth. Defaults to 10mm.
         :param finishing_pass: True if this operation includes a finishing pass. Defaults to False to indicate no
             finishing pass.
         """
-        self._centre = [0, 0] if centre is None else centre
+        self._centre = (0, 0) if centre is None else centre
         self._start_depth = start_depth
         self._diameter = diameter
         self._depth = depth
@@ -71,8 +72,8 @@ class CircularPocket(Operation):
 
         return results
 
-    def _set_centre(self, value: list[float]) -> None:
-        self._centre = value
+    def _set_centre(self, value: Tuple[float, float]) -> None:
+        self._centre = (0, 0) if value is None else value
 
     def _set_start_depth(self, value: float) -> None:
         self._start_depth = value

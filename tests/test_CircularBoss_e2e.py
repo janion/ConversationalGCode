@@ -15,7 +15,7 @@ class TestCircularBoss(EndToEndTester):
     def test_deep_narrow_position(self):
         self.gcode_generator.add_operation(
             CircularBoss(
-                centre=[12, 13],
+                centre=(12, 13),
                 top_height=-10,
                 final_diameter=6,
                 initial_diameter=10,
@@ -31,7 +31,7 @@ class TestCircularBoss(EndToEndTester):
 
         # self.gcode_generator.add_operation(
         #     CircularBoss(
-        #         centre=[12, 13],
+        #         centre=(12, 13),
         #         top_height=-10,
         #         final_diameter=26,
         #         initial_diameter=46,
@@ -49,7 +49,7 @@ class TestCircularBoss(EndToEndTester):
 
         # self.gcode_generator.add_operation(
         #     CircularBoss(
-        #         centre=[12, 13],
+        #         centre=(12, 13),
         #         top_height=-10,
         #         final_diameter=26,
         #         initial_diameter=46,
