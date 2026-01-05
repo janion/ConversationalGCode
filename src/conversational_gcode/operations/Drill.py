@@ -5,6 +5,8 @@ Classes:
 - Drill
   - Operation to drill multiple holes.
 """
+from typing import Tuple
+
 from conversational_gcode.operations.Operation import Operation
 from conversational_gcode.options.Options import Options
 from conversational_gcode.validate.validation_result import ValidationResult
@@ -20,7 +22,7 @@ class Drill(Operation):
     """
 
     def __init__(self,
-                 centres: list[list[float]] = None,
+                 centres: list[Tuple[float, float]] = None,
                  depth: float = 3,
                  start_depth: float = 0,
                  peck_interval: float = None,
@@ -59,7 +61,7 @@ class Drill(Operation):
 
         return results
 
-    def _set_centres(self, value: list[list[float]]) -> None:
+    def _set_centres(self, value: list[Tuple[float, float]]) -> None:
         self._centres = [] if value is None else value
 
     def _set_depth(self, value: float) -> None:
