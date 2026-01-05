@@ -32,5 +32,5 @@ class ValidationResult:
     success = property(fget=lambda self: self._success)
     message = property(fget=lambda self: self._message)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'ValidationResult(success={self._success}, message={self._message})'

@@ -5,12 +5,13 @@ Classes:
 - Drill
   - Operation to drill multiple holes.
 """
-
+from conversational_gcode.operations.Operation import Operation
+from conversational_gcode.options.Options import Options
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.gcodes.GCodes import GCode, G80, G81, G82, G83, CyclePosition
 
 
-class Drill:
+class Drill(Operation):
     """
     Operation to drill multiple holes in a canned cycle.
 
@@ -58,19 +59,19 @@ class Drill:
 
         return results
 
-    def _set_centres(self, value):
+    def _set_centres(self, value: list[list[float]]) -> None:
         self._centres = [] if value is None else value
 
-    def _set_depth(self, value):
+    def _set_depth(self, value: float) -> None:
         self._depth = value
 
-    def _set_start_depth(self, value):
+    def _set_start_depth(self, value: float) -> None:
         self._start_depth = value
 
-    def _set_peck_interval(self, value):
+    def _set_peck_interval(self, value: float) -> None:
         self._peck_interval = value
 
-    def _set_dwell(self, value):
+    def _set_dwell(self, value: float) -> None:
         self._dwell = value
 
     centres = property(
@@ -94,7 +95,7 @@ class Drill:
         fset=_set_dwell
     )
 
-    def generate(self, position, commands, options):
+    def generate(self, position: list[float], commands: list[GCode], options: Options) -> None:
         # Setup
         tool_options = options.tool
         job_options = options.job
@@ -123,7 +124,7 @@ class Drill:
         commands.append(G80(comment='End drilling cycle'))
         commands.append(GCode(''))
 
-    def to_json(self):
+    def to_json(self) -> str:
         centres_list = ','.join([f'[{centre[0]},{centre[1]}]' for centre in self._centres])
         return (
             '{' +
@@ -135,5 +136,5 @@ class Drill:
             '}'
         ).replace(',}', '}').replace(',]', ']')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'Drill(centres={self.centres}, depth={self.depth}, start_depth={self.start_depth}, peck_interval={self.peck_interval}, dwell={self.dwell})'

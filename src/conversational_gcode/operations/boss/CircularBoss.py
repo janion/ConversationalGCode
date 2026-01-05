@@ -8,12 +8,16 @@ Classes:
 
 from math import ceil, isclose
 
+from conversational_gcode.operations.Operation import Operation
+from conversational_gcode.options.JobOptions import JobOptions
+from conversational_gcode.options.Options import Options
+from conversational_gcode.options.ToolOptions import ToolOptions
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import helical_plunge, spiral_in
 from conversational_gcode.gcodes.GCodes import GCode, G0, G2, G3
 
 
-class CircularBoss:
+class CircularBoss(Operation):
     """
     Operation to create a circular boss.
 
@@ -45,7 +49,7 @@ class CircularBoss:
         self._height = height
         self._finishing_pass = finishing_pass
 
-    def validate(self, options=None):
+    def validate(self, options: Options = None) -> list[ValidationResult]:
         results = []
         if self._centre is None:
             results.append(ValidationResult(False, 'Boss centre coordinates must be specified'))
@@ -63,22 +67,22 @@ class CircularBoss:
 
         return results
 
-    def _set_centre(self, value):
+    def _set_centre(self, value: list[float]) -> None:
         self._centre = value
 
-    def _set_top_height(self, value):
+    def _set_top_height(self, value: float) -> None:
         self._top_height = value
 
-    def _set_initial_diameter(self, value):
+    def _set_initial_diameter(self, value: float) -> None:
         self._initial_diameter = value
 
-    def _set_final_diameter(self, value):
+    def _set_final_diameter(self, value: float) -> None:
         self._final_diameter = value
 
-    def _set_height(self, value):
+    def _set_height(self, value: float) -> None:
         self._height = value
 
-    def _set_finishing_pass(self, value):
+    def _set_finishing_pass(self, value: bool) -> None:
         self._finishing_pass = value
 
     centre = property(
@@ -106,7 +110,7 @@ class CircularBoss:
         fset=_set_finishing_pass
     )
 
-    def generate(self, position, commands, options):
+    def generate(self, position: list[float], commands: list[GCode], options: Options) -> None:
         #########
         # Setup #
         #########
@@ -158,7 +162,7 @@ class CircularBoss:
         # Clear wall
         self._clear_wall(position, commands, job_options)
 
-    def _move_to_centre(self, position, commands, job_options):
+    def _move_to_centre(self, position: list[float], commands: list[GCode], job_options: JobOptions) -> None:
         # Position tool at hole centre
         position[0] = self._centre[0]
         position[1] = self._centre[1]
@@ -166,7 +170,7 @@ class CircularBoss:
         position[2] = self._top_height + job_options.lead_in
         commands.append(G0(z=position[2], comment='Move to hole start height'))
 
-    def _clear_wall(self, position, commands, job_options):
+    def _clear_wall(self, position: list[float], commands: list[GCode], job_options: JobOptions) -> None:
         if position[0] > self._centre[0]:
             position[0] = max(position[0] + 1, self._centre[0])
         else:
@@ -175,7 +179,7 @@ class CircularBoss:
         position[2] += job_options.lead_in
         commands.append(G0(x=position[0], z=position[2], comment='Move cutter away from wall'))
 
-    def _create_finishing_pass(self, position, commands, tool_options, precision):
+    def _create_finishing_pass(self, position: list[float], commands: list[GCode], tool_options: ToolOptions, precision: int):
         commands.append(GCode(f'Finishing pass of {tool_options.finishing_pass:.{precision}f}mm'))
 
         is_right = position[0] > self._centre[0]
@@ -205,7 +209,7 @@ class CircularBoss:
             finishing_command(x=position[0], y=position[1], i=relative_centre, f=tool_options.finishing_feed_rate,
                               comment='Complete circle at final radius'))
 
-    def to_json(self):
+    def to_json(self) -> str:
         return (
                 '{' +
                 f'"centre":[{self._centre[0]},{self._centre[1]}],' +
@@ -217,7 +221,7 @@ class CircularBoss:
                 '}'
         ).replace(',}', '}')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             'CircularBoss(' +
             f'centre={self.centre}, ' +

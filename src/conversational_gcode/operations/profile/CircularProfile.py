@@ -5,13 +5,15 @@ Classes:
 - CircularProfile
   - Operation to create a circular profile.
 """
-
+from conversational_gcode.operations.Operation import Operation
+from conversational_gcode.options.JobOptions import JobOptions
+from conversational_gcode.options.Options import Options
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import helical_plunge
 from conversational_gcode.gcodes.GCodes import GCode, G0
 
 
-class CircularProfile:
+class CircularProfile(Operation):
     """
     Operation to create a circular profile.
 
@@ -44,7 +46,7 @@ class CircularProfile:
         self._is_inner = is_inner
         self._is_climb = is_climb
 
-    def validate(self, options=None):
+    def validate(self, options: Options = None) -> list[ValidationResult]:
         results = []
         if self._centre is None:
             results.append(ValidationResult(False, 'Profile centre coordinates must be specified'))
@@ -66,22 +68,22 @@ class CircularProfile:
 
         return results
 
-    def _set_centre(self, value):
+    def _set_centre(self, value: list[float]) -> None:
         self._centre = [0, 0] if value is None else value
 
-    def _set_start_depth(self, value):
+    def _set_start_depth(self, value: float) -> None:
         self._start_depth = value
 
-    def _set_diameter(self, value):
+    def _set_diameter(self, value: float) -> None:
         self._diameter = value
 
-    def _set_depth(self, value):
+    def _set_depth(self, value: float) -> None:
         self._depth = value
 
-    def _set_is_inner(self, value):
+    def _set_is_inner(self, value: bool) -> None:
         self._is_inner = value
 
-    def _set_is_climb(self, value):
+    def _set_is_climb(self, value: bool) -> None:
         self._is_climb = value
 
     centre = property(
@@ -109,7 +111,7 @@ class CircularProfile:
         fset=_set_is_climb
     )
 
-    def generate(self, position, commands, options):
+    def generate(self, position: list[float], commands: list[GCode], options: Options) -> None:
         # Setup
         tool_options = options.tool
         job_options = options.job
@@ -134,7 +136,7 @@ class CircularProfile:
                        is_inner=self._is_inner,
                        is_climb=self._is_climb)
 
-    def _move_to_centre(self, position, commands, job_options):
+    def _move_to_centre(self, position: list[float], commands: list[GCode], job_options: JobOptions) -> None:
         # Position tool at hole centre
         position[0] = self._centre[0]
         position[1] = self._centre[1]
@@ -142,7 +144,7 @@ class CircularProfile:
         position[2] = self._start_depth + job_options.lead_in
         commands.append(G0(z=position[2], comment='Move to hole start depth'))
 
-    def to_json(self):
+    def to_json(self) -> str:
         return (
                 '{' +
                 f'"centre":[{self._centre[0]},{self._centre[1]}],' +
@@ -154,7 +156,7 @@ class CircularProfile:
                 '}'
         ).replace(',}', '}')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             'CircularProfile(' +
             f'diameter={self.diameter}, centre={self.centre}, ' +

@@ -33,7 +33,7 @@ class OutputOptions:
         self._feed_precision = feed_precision
         self._speed_precision = speed_precision
 
-    def validate(self):
+    def validate(self) -> list[ValidationResult]:
         results = []
         if self._position_precision is None or self._position_precision < 0:
             results.append(ValidationResult(False, 'Position precision must be zero or greater'))
@@ -47,13 +47,13 @@ class OutputOptions:
 
         return results
 
-    def _set_position_precision(self, value):
+    def _set_position_precision(self, value: int) -> None:
         self._position_precision = value
 
-    def _set_feed_precision(self, value):
+    def _set_feed_precision(self, value: int) -> None:
         self._feed_precision = value
 
-    def _set_speed_precision(self, value):
+    def _set_speed_precision(self, value: int) -> None:
         self._speed_precision = value
 
     position_precision = property(
@@ -69,7 +69,7 @@ class OutputOptions:
         fset=_set_speed_precision
     )
 
-    def to_json(self):
+    def to_json(self) -> str:
         return (
             '{' +
             (f'"position_precision":{self._position_precision},' if self._position_precision is not None else '') +
@@ -78,7 +78,7 @@ class OutputOptions:
             '}'
         ).replace(',}', '}')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             'OutputOptions(' +
             f'position_precision={self.position_precision}, ' +

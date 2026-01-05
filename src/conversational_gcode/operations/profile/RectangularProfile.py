@@ -8,11 +8,13 @@ Classes:
 
 from math import ceil, tan, pi, isclose
 
+from conversational_gcode.operations.Operation import Operation
+from conversational_gcode.options.Options import Options
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.gcodes.GCodes import GCode, G0, G1
 
 
-class RectangularProfile:
+class RectangularProfile(Operation):
     """
     Operation to create a rectangular profile.
 
@@ -85,28 +87,28 @@ class RectangularProfile:
 
         return results
 
-    def _set_width(self, value):
+    def _set_width(self, value: float) -> None:
         self._width = value
 
-    def _set_length(self, value):
+    def _set_length(self, value: float) -> None:
         self._length = value
 
-    def _set_depth(self, value):
+    def _set_depth(self, value: float) -> None:
         self._depth = value
 
-    def _set_centre(self, value):
+    def _set_centre(self, value: list[float]) -> None:
         self._centre = value
 
-    def _set_corner(self, value):
+    def _set_corner(self, value: list[float]) -> None:
         self._corner = value
 
-    def _set_start_depth(self, value):
+    def _set_start_depth(self, value: float) -> None:
         self._start_depth = value
 
-    def _set_is_inner(self, value):
+    def _set_is_inner(self, value: bool) -> None:
         self._is_inner = value
 
-    def _set_is_climb(self, value):
+    def _set_is_climb(self, value: bool) -> None:
         self._is_climb = value
 
     width = property(
@@ -142,7 +144,7 @@ class RectangularProfile:
         fset=_set_is_climb
     )
 
-    def generate(self, position, commands, options):
+    def generate(self, position: list[float], commands: list[GCode], options: Options) -> None:
         # Setup
         precision = options.output.position_precision
         tool_options = options.tool
@@ -205,7 +207,7 @@ class RectangularProfile:
             position[1] += travel[1]
             commands.append(G1(x=position[0], y=position[1], f=tool_options.feed_rate))
 
-    def to_json(self):
+    def to_json(self) -> str:
         return (
                 '{' +
                 f'"width":{self._width},' +
@@ -219,7 +221,7 @@ class RectangularProfile:
                 '}'
         ).replace(',}', '}')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             'RectangularProfile(' +
             f'width={self.width}, length={self.length}, ' +

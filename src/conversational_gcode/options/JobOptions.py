@@ -25,7 +25,7 @@ class JobOptions:
         self._clearance_height = clearance_height
         self._lead_in = lead_in
 
-    def validate(self):
+    def validate(self) -> list[ValidationResult]:
         results = []
         if self._clearance_height is None or self._clearance_height <= 0:
             results.append(ValidationResult(False, 'Clearance height must be greater than zero'))
@@ -37,10 +37,10 @@ class JobOptions:
 
         return results
 
-    def _set_clearance_height(self, value):
+    def _set_clearance_height(self, value: float) -> None:
         self._clearance_height = value
 
-    def _set_lead_in(self, value):
+    def _set_lead_in(self, value: float) -> None:
         self._lead_in = value
 
     clearance_height = property(
@@ -53,7 +53,7 @@ class JobOptions:
         fset=_set_lead_in
     )
 
-    def to_json(self):
+    def to_json(self) -> str:
         return (
                 '{' +
                 (f'"clearance_height":{self._clearance_height},' if self._clearance_height is not None else '') +
@@ -61,5 +61,5 @@ class JobOptions:
                 '}'
         ).replace(',}', '}')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'JobOptions(clearance_height={self.clearance_height}, lead_in={self.lead_in})'

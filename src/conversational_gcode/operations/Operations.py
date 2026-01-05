@@ -11,6 +11,7 @@ Functions:
 """
 
 from math import pi, ceil, tan, isclose
+from typing import Tuple
 
 from conversational_gcode.options.JobOptions import JobOptions
 from conversational_gcode.options.ToolOptions import ToolOptions
@@ -22,7 +23,7 @@ def rapid_with_z_hop(
         new_position: list[float],
         job_options: JobOptions,
         comment: str = None
-):
+) -> Tuple[list[GCode], list[float]]:
     """
     A rapid move in a triangular path to prevent dragging the tool on the previously cut surface.
     This splits the path
@@ -77,7 +78,7 @@ def helical_plunge(
         tool_options: ToolOptions,
         precision: float,
         is_inner: bool = True,
-        is_climb: bool = False):
+        is_climb: bool = False) -> None:
     """
     Helically interpolate to a given depth.
     :param centre: XY centre of the helix.
@@ -126,7 +127,7 @@ def spiral_out(
         position: list[float],
         commands: list,
         tool_options: ToolOptions,
-        precision: float):
+        precision: int) -> None:
     """
     Spiral out from a given location to a final diameter.
 
@@ -166,7 +167,7 @@ def spiral_in(
         position: list[float],
         commands: list,
         tool_options: ToolOptions,
-        precision: float):
+        precision: int) -> None:
     """
     Spiral in from a given location to a final diameter.
 

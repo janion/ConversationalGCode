@@ -10,6 +10,7 @@ Classes:
 
 import json
 
+from conversational_gcode.operations.Operation import Operation
 from conversational_gcode.options.OutputOptions import OutputOptions
 from conversational_gcode.options.Options import Options
 from conversational_gcode.validate.validation_result import ValidationResult
@@ -29,11 +30,11 @@ class _CommandPrinter:
         self.output_options = output_options
         self.commands = []
 
-    def append(self, command):
+    def append(self, command: GCode) -> None:
         print(command.format(self.output_options))
         self.commands.append(command)
 
-    def extend(self, commands):
+    def extend(self, commands: GCode) -> None:
         for command in commands:
             print(command.format(self.output_options))
         self.commands.extend(commands)
@@ -55,7 +56,7 @@ class GcodeGenerator:
         self._options = options
         self._operations = []
 
-    def add_operation(self, operation):
+    def add_operation(self, operation: Operation) -> None:
         """
         Add an operation to the list.
         :param operation: Operation to add.
@@ -121,7 +122,7 @@ class GcodeGenerator:
 
         return commands
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             'GcodeGenerator(' +
             f'options={self._options!r}, ' +

@@ -8,14 +8,18 @@ Classes:
 
 from math import ceil,  isclose, sqrt
 from copy import deepcopy
+from typing import Tuple, Callable
 
+from conversational_gcode.operations.Operation import Operation
+from conversational_gcode.options.JobOptions import JobOptions
+from conversational_gcode.options.Options import Options
 from conversational_gcode.validate.validation_result import ValidationResult
 from conversational_gcode.operations.Operations import rapid_with_z_hop, helical_plunge, spiral_out
 from conversational_gcode.gcodes.GCodes import GCode, G0, G1, G2
 from conversational_gcode.transform.Transformation import Transformation
 
 
-class RectangularPocket:
+class RectangularPocket(Operation):
     """
     Operation to create a rectangular pocket.
 
@@ -87,25 +91,25 @@ class RectangularPocket:
 
         return results
 
-    def _set_width(self, value):
+    def _set_width(self, value: float) -> None:
         self._width = value
 
-    def _set_length(self, value):
+    def _set_length(self, value: float) -> None:
         self._length = value
 
-    def _set_depth(self, value):
+    def _set_depth(self, value: float) -> None:
         self._depth = value
 
-    def _set_centre(self, value):
+    def _set_centre(self, value: list[float]) -> None:
         self._centre = value
 
-    def _set_corner(self, value):
+    def _set_corner(self, value: list[float]) -> None:
         self._corner = value
 
-    def _set_start_depth(self, value):
+    def _set_start_depth(self, value: float) -> None:
         self._start_depth = value
 
-    def _set_finishing_pass(self, value):
+    def _set_finishing_pass(self, value: bool) -> None:
         self._finishing_pass = value
 
     width = property(
@@ -137,7 +141,7 @@ class RectangularPocket:
         fset=_set_finishing_pass
     )
 
-    def generate(self, position, commands, options):
+    def generate(self, position: list[float], commands: list[GCode], options: Options) -> None:
         #########
         # Setup #
         #########
@@ -201,7 +205,7 @@ class RectangularPocket:
             corner_commands = self._clear_near_corners(pocket_clearing_centre, final_clearing_radius, position, operation_commands, options)
 
             # Clear arcs up to edge
-            self._clear_centre(pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options)
+            self._clear_centre(pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, position, operation_commands, options)
 
             # Clear far corners
             self._clear_far_corners(pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options)
@@ -239,7 +243,7 @@ class RectangularPocket:
         for operation_command in operation_commands:
             commands.append(operation_command)
 
-    def _move_to_start(self, start_position, position, commands, job_options):
+    def _move_to_start(self, start_position: list[float], position: list[float], commands: list[GCode], job_options: JobOptions) -> None:
         # Position tool at hole centre
         position[0] = start_position[0]
         position[1] = start_position[1]
@@ -247,7 +251,7 @@ class RectangularPocket:
         position[2] = start_position[2] + job_options.lead_in
         commands.append(G0(z=position[2], comment='Move to hole start depth'))
 
-    def _clear_near_corners(self, pocket_clearing_centre, final_clearing_radius, position, operation_commands, options):
+    def _clear_near_corners(self, pocket_clearing_centre: list[float], final_clearing_radius: float, position: list[float], operation_commands: list[GCode], options: Options) -> None:
         precision = options.output.position_precision
         tool_options = options.tool
 
@@ -341,7 +345,7 @@ class RectangularPocket:
 
         return corner_commands
 
-    def _clear_centre(self, pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options):
+    def _clear_centre(self, pocket_clearing_centre: list[float], final_clearing_radius: float, pocket_clearing_size: list[float], position: list[float], operation_commands: list[GCode], options: Options) -> None:
         precision = options.output.position_precision
         tool_options = options.tool
 
@@ -398,7 +402,7 @@ class RectangularPocket:
 
             last_cartesian_stepover = total_cartesian_stepover
 
-    def _clear_far_corners(self, pocket_clearing_centre, final_clearing_radius, pocket_clearing_size, corner_commands, position, operation_commands, options):
+    def _clear_far_corners(self, pocket_clearing_centre: list[float], final_clearing_radius: float, pocket_clearing_size: list[float], corner_commands: list[GCode], position: list[float], operation_commands: list[GCode], options: Options) -> None:
         tool_options = options.tool
         precision = options.output.position_precision
 
@@ -517,7 +521,7 @@ class RectangularPocket:
             position[0:3] = point
             operation_commands.append(command(*point))
 
-    def _record_future_rapid(self, commands_and_positions, start_position, new_position, job_options, comment=None):
+    def _record_future_rapid(self, commands_and_positions: list[Tuple[list[float], Callable[[float, float, float], GCode]]], start_position: list[float], new_position: list[float], job_options: JobOptions, comment: str = None) -> None:
         rapid_commands, rapid_positions = rapid_with_z_hop(
             position=start_position,
             new_position=[*new_position],
@@ -525,9 +529,9 @@ class RectangularPocket:
             comment=comment
         )
         for command, position in zip(rapid_commands, rapid_positions):
-            commands_and_positions.append([position, (lambda tmp_command: lambda x, y, z: tmp_command)(command)])
+            commands_and_positions.append((position, (lambda tmp_command: lambda x, y, z: tmp_command)(command)))
 
-    def _create_finishing_pass(self, centre, pocket_final_size, position, operation_commands, options):
+    def _create_finishing_pass(self, centre: list[float], pocket_final_size: list[float], position: list[float], operation_commands: list[GCode], options: Options) -> None:
         tool_options = options.tool
         precision = options.output.position_precision
 
@@ -561,13 +565,13 @@ class RectangularPocket:
             position[1] = initial_y_position
             operation_commands.append(G1(x=position[0], y=position[1], f=tool_options.finishing_feed_rate))
 
-    def _clear_wall(self, centre, position, operation_commands, job_options):
+    def _clear_wall(self, centre: list[float], position: list[float], operation_commands: list[GCode], job_options: JobOptions) -> None:
         position[0] = max(centre[0], position[0] - 1)
         position[1] = max(centre[1], position[1] - 1)
         position[2] += job_options.lead_in
         operation_commands.append(G0(x=position[0], y=position[1], z=position[2], comment='Clear wall'))
 
-    def to_json(self):
+    def to_json(self) -> str:
         return (
                 '{' +
                 f'"width":{self._width},' +
@@ -580,7 +584,7 @@ class RectangularPocket:
                 '}'
         ).replace(',}', '}')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             'RectangularPocket(' +
             f'width={self.width}, length={self.length}, ' +

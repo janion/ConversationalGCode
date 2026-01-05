@@ -70,7 +70,7 @@ class ToolOptions:
         self._finishing_feed_rate = finishing_feed_rate
         self._finishing_climb = finishing_climb
 
-    def validate(self):
+    def validate(self) -> list[ValidationResult]:
         results = []
         if self._tool_flutes is None or self._tool_flutes < 1:
             results.append(ValidationResult(False, 'Tool flute count must be 1 or more'))
@@ -119,40 +119,40 @@ class ToolOptions:
 
         return results
 
-    def _set_tool_flutes(self, value):
+    def _set_tool_flutes(self, value: int) -> None:
         self._tool_flutes = value
 
-    def _set_tool_diameter(self, value):
+    def _set_tool_diameter(self, value: float) -> None:
         self._tool_diameter = value
 
-    def _set_spindle_speed(self, value):
+    def _set_spindle_speed(self, value: float) -> None:
         self._spindle_speed = value
 
-    def _set_feed_rate(self, value):
+    def _set_feed_rate(self, value: float) -> None:
         self._feed_rate = value
 
-    def _set_max_stepover(self, value):
+    def _set_max_stepover(self, value: float) -> None:
         self._max_stepover = value
 
-    def _set_max_stepdown(self, value):
+    def _set_max_stepdown(self, value: float) -> None:
         self._max_stepdown = value
 
-    def _set_max_helix_stepover(self, value):
+    def _set_max_helix_stepover(self, value: float) -> None:
         self._max_helix_stepover = value
 
-    def _set_helix_feed_rate(self, value):
+    def _set_helix_feed_rate(self, value: float) -> None:
         self._helix_feed_rate = value
 
-    def _set_max_helix_angle(self, value):
+    def _set_max_helix_angle(self, value: float) -> None:
         self._max_helix_angle = value
 
-    def _set_finishing_pass(self, value):
+    def _set_finishing_pass(self, value: float) -> None:
         self._finishing_pass = value
 
-    def _set_finishing_feed_rate(self, value):
+    def _set_finishing_feed_rate(self, value: float) -> None:
         self._finishing_feed_rate = value
 
-    def _set_finishing_climb(self, value):
+    def _set_finishing_climb(self, value: bool) -> None:
         self._finishing_climb = value
 
     tool_flutes = property(
@@ -208,7 +208,7 @@ class ToolOptions:
         fset=_set_finishing_climb
     )
 
-    def to_json(self):
+    def to_json(self) -> str:
         return (
             '{' +
             (f'"tool_flutes":{self._tool_flutes},' if self._tool_flutes is not None else '') +
@@ -226,7 +226,7 @@ class ToolOptions:
             '}'
         ).replace(',}', '}')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             'OutputOptions(' +
             f'tool_flutes={self._tool_flutes}, ' +

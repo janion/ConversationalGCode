@@ -39,7 +39,7 @@ class Options:
         self._job = job if job is not None else JobOptions()
         self._output = output if output is not None else OutputOptions()
 
-    def validate(self):
+    def validate(self) -> list[ValidationResult]:
         results = []
         results.extend(self._output.validate())
         results.extend(self._job.validate())
@@ -56,7 +56,7 @@ class Options:
     job = property(fget=lambda self: self._job)
     output = property(fget=lambda self: self._output)
 
-    def to_json(self):
+    def to_json(self) -> str:
         return (
                 '{' +
                 f'"tool":{self.tool.to_json()},' +
@@ -65,5 +65,5 @@ class Options:
                 '}'
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'Options(tool={self.tool!r}, job={self.job!r}, output={self.output!r})'

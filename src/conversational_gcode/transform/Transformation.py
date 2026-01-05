@@ -22,7 +22,7 @@ class Transformation:
     absolute: list
     relative: list
 
-    def transform_absolute(self, point):
+    def transform_absolute(self, point: list[float]) -> list[float]:
         """
         Transform an absolute point.
         :param point: [X, Y, Z] position to transform.
@@ -33,7 +33,7 @@ class Transformation:
         new_z = self.absolute[2](*point)
         return [new_x, new_y, new_z]
 
-    def transform_relative(self, point):
+    def transform_relative(self, point: list[float]) -> list[float]:
         """
         Transform a relative point.
         :param point: [X, Y, Z] position to transform.
@@ -44,7 +44,7 @@ class Transformation:
         new_z = self.relative[2](*point)
         return [new_x, new_y, new_z]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             'Transformation(' +
             f'absolute={self.absolute!r}, ' +

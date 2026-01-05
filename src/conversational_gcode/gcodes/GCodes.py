@@ -30,7 +30,11 @@ Classes:
   - Prints an XY location for use within a canned cycle.
 """
 
+from conversational_gcode.options.OutputOptions import OutputOptions
+from conversational_gcode.transform.Transformation import Transformation
+
 from dataclasses import dataclass
+from typing import Self
 
 
 @dataclass
@@ -43,10 +47,10 @@ class GCode:
     """
     comment: str = None
 
-    def format(self, output_options):
+    def format(self, output_options: OutputOptions) -> str:
         return ';' if self.comment is None else f'; {self.comment}'
 
-    def transform(self, transformation):
+    def transform(self, transformation: Transformation) -> Self:
         return self
 
     def __eq__(self, __o: object) -> bool:
@@ -55,7 +59,7 @@ class GCode:
 
         return self.comment == __o.comment
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'GCode(comment={self.comment})'
 
 
@@ -68,7 +72,7 @@ class M2(GCode):
         comment (str): An optional comment to print at the end of the line.
     """
 
-    def format(self, output_options):
+    def format(self, output_options: OutputOptions) -> str:
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'M2{end}'
 
@@ -78,7 +82,7 @@ class M2(GCode):
 
         return isinstance(__o, M2)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'M2(comment={self.comment})'
 
 
@@ -93,7 +97,7 @@ class M3(GCode):
     """
     s: float = None  # rpm
 
-    def format(self, output_options):
+    def format(self, output_options: OutputOptions) -> str:
         speed_precision = output_options.speed_precision
         rpm = f' S{self.s:.{speed_precision}f}'
         end = ';' if self.comment is None else f'; {self.comment}'
@@ -108,7 +112,7 @@ class M3(GCode):
 
         return self.s == __o.s
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'M3(s={self.s}, comment={self.comment})'
 
 
@@ -121,7 +125,7 @@ class M5(GCode):
         comment (str): An optional comment to print at the end of the line.
     """
 
-    def format(self, output_options):
+    def format(self, output_options: OutputOptions) -> str:
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'M5{end}'
 
@@ -131,7 +135,7 @@ class M5(GCode):
 
         return isinstance(__o, M5)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'M5(comment={self.comment})'
 
 
@@ -151,7 +155,7 @@ class G0(GCode):
     y: float = None  # mm
     z: float = None  # mm
 
-    def format(self, output_options):
+    def format(self, output_options: OutputOptions) -> str:
         position_precision = output_options.position_precision
         x_pos = f' X{self.x:.{position_precision}f}' if self.x is not None else ''
         y_pos = f' Y{self.y:.{position_precision}f}' if self.y is not None else ''
@@ -159,7 +163,7 @@ class G0(GCode):
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'G0{x_pos}{y_pos}{z_pos}{end}'
 
-    def transform(self, transformation):
+    def transform(self, transformation: Transformation) -> GCode:
         new_point = transformation.transform_absolute([self.x, self.y, self.z])
         self.x = new_point[0]
         self.y = new_point[1]
@@ -178,7 +182,7 @@ class G0(GCode):
                 self.y == __o.y and
                 self.z == __o.z)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'G0(x={self.x}, y={self.y}, z={self.z}, comment={self.comment})'
 
 
@@ -196,7 +200,7 @@ class G1(G0):
     """
     f: float = None  # mm per min
 
-    def format(self, output_options):
+    def format(self, output_options: OutputOptions) -> str:
         position_precision = output_options.position_precision
         feed_precision = output_options.feed_precision
         x_pos = f' X{self.x:.{position_precision}f}' if self.x is not None else ''
@@ -215,7 +219,7 @@ class G1(G0):
 
         return self.f == __o.f
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'G1(x={self.x}, y={self.y}, z={self.z}, f={self.f}, comment={self.comment})'
 
 
@@ -254,10 +258,10 @@ class G2(G1):
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'{command}{x_pos}{y_pos}{z_pos}{i_pos}{j_pos}{k_pos}{feed}{end}'
 
-    def format(self, output_options):
+    def format(self, output_options: OutputOptions) -> str:
         return self._format_arc('G2', output_options)
 
-    def transform(self, transformation):
+    def transform(self, transformation: Transformation) -> GCode:
         super().transform(transformation)
 
         new_point = transformation.transform_relative([self.i, self.j, self.k])
@@ -279,7 +283,7 @@ class G2(G1):
                 self.j == __o.j and
                 self.k == __o.k)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             'G2(' +
             f'x={self.x}, y={self.y}, z={self.z}, '+
@@ -308,7 +312,7 @@ class G3(G2):
         comment (str): An optional comment to print at the end of the line.
     """
 
-    def format(self, output_options):
+    def format(self, output_options: OutputOptions) -> str:
         return self._format_arc('G3', output_options)
 
     def __eq__(self, __o: object) -> bool:
@@ -317,7 +321,7 @@ class G3(G2):
 
         return isinstance(__o, G3)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             'G3(' +
             f'x={self.x}, y={self.y}, z={self.z}, '+
@@ -335,7 +339,7 @@ class G80(GCode):
         comment (str): An optional comment to print at the end of the line.
     """
 
-    def format(self, output_options):
+    def format(self, output_options: OutputOptions) -> str:
         end = ';' if self.comment is None else f'; {self.comment}'
         return f'G80{end}'
 
@@ -345,7 +349,7 @@ class G80(GCode):
 
         return isinstance(__o, G80)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'G80(comment={self.comment})'
 
 
@@ -364,7 +368,7 @@ class G81(G1):
     """
     r: float = None  # mm
 
-    def format(self, output_options):
+    def format(self, output_options: OutputOptions) -> str:
         position_precision = output_options.position_precision
         feed_precision = output_options.feed_precision
         x_pos = f' X{self.x:.{position_precision}f}' if self.x is not None else ''
@@ -384,7 +388,7 @@ class G81(G1):
 
         return self.r == __o.r
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'G81(x={self.x}, y={self.y}, z={self.z}, r={self.r}, f={self.f}, comment={self.comment})'
 
 
@@ -404,7 +408,7 @@ class G82(G81):
     """
     p: int = None  # ms
 
-    def format(self, output_options):
+    def format(self, output_options: OutputOptions) -> str:
         position_precision = output_options.position_precision
         feed_precision = output_options.feed_precision
         x_pos = f' X{self.x:.{position_precision}f}' if self.x is not None else ''
@@ -425,7 +429,7 @@ class G82(G81):
 
         return self.p == __o.p
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'G82(x={self.x}, y={self.y}, z={self.z}, r={self.r}, p={self.p}, f={self.f}, comment={self.comment})'
 
 
@@ -446,7 +450,7 @@ class G83(G82):
     """
     q: float = None  # mm
 
-    def format(self, output_options):
+    def format(self, output_options: OutputOptions) -> str:
         position_precision = output_options.position_precision
         feed_precision = output_options.feed_precision
         x_pos = f' X{self.x:.{position_precision}f}' if self.x is not None else ''
@@ -468,7 +472,7 @@ class G83(G82):
 
         return self.q == __o.q
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             'G83(' +
             f'x={self.x}, y={self.y}, z={self.z}, ' +
@@ -490,7 +494,7 @@ class CyclePosition(G0):
         comment (str): An optional comment to print at the end of the line.
     """
 
-    def format(self, output_options):
+    def format(self, output_options: OutputOptions) -> str:
         position_precision = output_options.position_precision
         x_pos = f'X{self.x:.{position_precision}f}' if self.x is not None else ''
 
@@ -509,5 +513,5 @@ class CyclePosition(G0):
 
         return isinstance(__o, CyclePosition)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'CyclePosition(x={self.x}, y={self.y}, z={self.z}, comment={self.comment})'
